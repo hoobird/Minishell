@@ -12,12 +12,30 @@
 
 # include "minishell.h"
 
-int main(int argc, char **argv, char **envp)
-{
-    (void)argc;
-    (void)argv;
-    (void)envp;
 
-    printf("we can use this main for testing purposes\n");
-    return (0);
+
+// if a REPL does only one loop, is it really a REPL ?
+//int	main(int ac, char *av[])
+int main(int ac, char **av)
+{
+	(void)ac;
+	(void)av;
+		
+	char* buf;
+//	while ((buf = readline(">> ")) != NULL) {
+	while ((buf = readline(PROMPT)) != NULL) 
+	{
+		if (strlen(buf) > 0) {
+		 add_history(buf);
+    }
+	if (strcmp(buf, "exit") == 0)
+		exit(0);
+	if (strcmp(buf, "clear") == 0)
+		rl_clear_history();
+	printf("[%s]\n", buf);
+    free(buf); // because readline malloc's a new buffer every time.
+    }
+    
+    
+	return (0);
 }

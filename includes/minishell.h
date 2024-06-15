@@ -13,6 +13,8 @@
 # ifndef MINISHELL_H
 # define MINISHELL_H
 
+# define PROMPT "minishell>> "
+
 // For printf, perror
 #include <stdio.h>        
 // For malloc, free, exit, getenv
