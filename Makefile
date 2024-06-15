@@ -24,7 +24,7 @@ OBJS = $(addprefix $(OBJDIR), $(SRCFILES:.c=.o))
 all: $(NAME)
 
 $(NAME): $(LIBFT_A) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -lreadline -o $(NAME)
 
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	@mkdir -p $(OBJDIR)
