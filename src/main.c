@@ -12,8 +12,32 @@
 
 # include "minishell.h"
 
-/* 
-find the string in envp that starts with PWD=
+/*
+changedir() works2 ways:
+- without argument
+- with argument
+
+changedir() without argument:
+and if env var HOME is empty/undefined, then undefined behavior
+and if env var HOME is non-empty, then treat as if cd $HOME
+
+
+if with arg, arg can be absolute/relative path
+cd <relative path>, "expand"/resolve relative path to absolute path
+cd <absolute path>
+
+also need to update PWD and OLDPWD in shell_env, which are absolute paths
+*/
+void	changedir(void) // param should accept path to dst dir
+{
+	chdir("/home/jsu");
+	// and update PWD and OLDPWD in shell_env, which are absolute paths
+	// OLDPWD = PWD
+	// PWD = <path to dst dir>
+}
+
+/*
+print_cwd() finds the string in envp that starts with PWD=
 move a ptr past the '=' char,
 then print the rest of the chars
 */
@@ -46,7 +70,7 @@ void	print_shell_env(char **envp)
 }
 
 /*
-malloc space for a char **arr
+ft_env_dup() mallocs space for a char **arr
 then strdup n char arrays into malloc~ed space
 then return a free-able ptr to the malloc~ed space
 */
@@ -80,9 +104,7 @@ char	**ft_env_dup(char **envp)
 	return (res);
 }
 
-// if a REPL does only one loop, is it really a REPL ?
-//int	main(int ac, char *av[])
-int main(int ac, char *av[], char *envp[])
+int main(int ac, char *av[], char *env[])
 {
 	(void)ac;
 	(void)av;
@@ -97,20 +119,39 @@ int main(int ac, char *av[], char *envp[])
     }
 
 	// malloc a copy of caller's/parent's env, for the current shell
-    shell_env = ft_env_dup(envp);
+    shell_env = ft_env_dup(env);
 
 
-// ### BUILT-INS, "pwd"
+// ## BUILT-INS, "cd", call chdir() with <path>, #include <unistd.h>
+
+	if (strcmp(buf, "cd") == 0)
+		changedir();
+
+// ## BUILT-INS, "pwd"
 	if (strcmp(buf, "pwd") == 0)
 		print_cwd(shell_env);
-// ### BUILT-INS, "env"
+
+/*
+ ## BUILT-INS, "export", 
+use getenv() 
+and/or implement ft_setenv()
+*/
+
+/* 
+## BUILT-INS, "unset",
+without options, unset first tries to unset a variable, 
+and if that fails, tries to unset a function.
+Some variables cannot be unset; also see `readonly'.
+*/
+
+// ## BUILT-INS, "env"
 	if (strcmp(buf, "env") == 0)
 		print_shell_env(shell_env);
-// ### BUILT-INS, "exit"    
+// ## BUILT-INS, "exit"    
 	if (strcmp(buf, "exit") == 0)
 		exit(0);
 
-// ### HISTORY, clear history
+// not mandatory, clear history buffer
 //	if (strcmp(buf, "clear") == 0)
 //		rl_clear_history();
 
