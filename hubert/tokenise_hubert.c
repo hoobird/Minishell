@@ -1,40 +1,91 @@
 // # include "minishell.h"
 #include "../includes/minishell.h"
 
-char	**tokenise(char *buf);
-char	**add_to_strarr(char **oldtokenarr, char *token);
-int		get_strarr_len(char **tokenarr);
-int		ft_isspace(char c);
+char **tokenise(char *buf);
+char **add_to_strarr(char **oldtokenarr, char *token);
+int get_strarr_len(char **tokenarr);
+int ft_isspace(char c);
+int ft_isbashdelimiter(char *pt);
+int ft_isquote(char pt);
 
 // for testing purpose
-void	print_str_arr(char **strarr);
+void print_str_arr(char **strarr);
 
 // Tokenise a string
 // cat -e "hello" | ls --> {"cat", "-e", "hello", "|", "ls"}
-char	**tokenise(char *buf)
+char **tokenise(char *buf)
 {
-	char	**tokenarr;
-	char	*tokencurrent;
-	int		index;
-	int		start;
+	char **tokenarr;
+	char *tokencurrent;
+	int quoteopen;
+	int index;
+	int start;
 
 	start = 0;
 	index = 0;
-	while (ft_isspace(buf[index]))
-		index++;
+	quoteopen = 0;
 	start = index;
+	while (buf[index] && ft_isspace(buf[index]))
+		index++;
 	while (buf[index])
 	{
-		if (ft_isspace(buf[index]) || buf[index] == '|' || buf[index + 1] == 0)
+		if (buf[index + 1] == 0)
 		{
-			if (buf[index + 1] == 0)
+			tokencurrent = ft_substr(buf, start, index - start + 1);
+			tokenarr = add_to_strarr(tokenarr, tokencurrent);
+			free(tokencurrent);
+			break;
+		}
+		if (ft_isquote(buf[index]) == 0)
+		{
+			if (quoteopen == 1)
+			{
 				index++;
+				continue;
+			}
+		}	
+		else 
+		{
+			if (quoteopen == 0)
+			{
+				quoteopen = 1;
+				index++;
+				continue;
+			}
+			else
+			{
+				quoteopen = 0;
+				tokencurrent = ft_substr(buf, start, index - start + 1);
+				tokenarr = add_to_strarr(tokenarr, tokencurrent);
+				free(tokencurrent);
+				start = index + 1;
+			}
+		}
+		if (ft_isbashdelimiter(&(buf[index])))
+		{
 			tokencurrent = ft_substr(buf, start, index - start);
-			add_to_strarr(tokenarr, tokencurrent);
-			if (buf[index] == '|')
-				add_to_strarr(tokenarr, "|");
+			tokenarr = add_to_strarr(tokenarr, tokencurrent);
+			free(tokencurrent);
+			if (ft_isbashdelimiter(&(buf[index])) == 1)
+			{
+				if (ft_isspace(buf[index]) == 0)
+				{
+				tokencurrent = ft_substr(buf, index, 1);
+				tokenarr = add_to_strarr(tokenarr, tokencurrent);
+				free(tokencurrent);
+				}
+			}
+			else
+			{
+				tokencurrent = ft_substr(buf, index, 2);
+				tokenarr = add_to_strarr(tokenarr, tokencurrent);
+				free(tokencurrent);
+				index++;
+			}
 			start = index + 1;
 		}
+		while (buf[index] && ft_isspace(buf[index]))
+			index++;
 		index++;
 	}
 	return (tokenarr);
@@ -42,9 +93,29 @@ char	**tokenise(char *buf)
 
 // returns 1 if char is whitespace,
 // else return 0
-int	ft_isspace(char c)
+int ft_isspace(char c)
 {
 	if ((c >= 9 && c <= 13) || c == 32)
+		return (1);
+	return (0);
+}
+
+// checks if its bash delimiter (|, spaces, \0, <, <<, >, >>)
+// returns 0 if not delimiter, else number of spaces occpied by delimeter
+int ft_isbashdelimiter(char *pt)
+{
+	if (ft_strncmp(pt, ">>", 2) == 0 || ft_strncmp(pt, "<<", 2) == 0)
+		return (2);
+	if (*pt == '|' || ft_isspace(*pt) || *pt == '<' || *pt == '>' || *pt == '$')
+		return (1);
+	return (0);
+}
+
+// checks if its a quote (', ")
+// returns 0 if not quote, else 1
+int ft_isquote(char pt)
+{
+	if (pt == '\'' || pt == '"')
 		return (1);
 	return (0);
 }
@@ -53,10 +124,10 @@ int	ft_isspace(char c)
 // If string array is NULL, it will be automatically initialised.
 // String array always ends with a NULL pointer
 // Returns the new string array, old one will be freed
-char	**add_to_strarr(char **oldstrarr, char *token)
+char **add_to_strarr(char **oldstrarr, char *token)
 {
-	int		oldsize;
-	char	**newtokenarr;
+	int oldsize;
+	char **newtokenarr;
 
 	if (!oldstrarr)
 		oldstrarr = ft_calloc(sizeof(char *), 1);
@@ -71,9 +142,9 @@ char	**add_to_strarr(char **oldstrarr, char *token)
 
 // Returns the length of the string array,
 // NOT including the NULL pointer at the end.
-int	get_strarr_len(char **strarr)
+int get_strarr_len(char **strarr)
 {
-	int	index;
+	int index;
 
 	index = 0;
 	while (strarr && strarr[index])
@@ -81,9 +152,9 @@ int	get_strarr_len(char **strarr)
 	return (index);
 }
 
-void	print_str_arr(char **strarr)
+void print_str_arr(char **strarr)
 {
-	int	index;
+	int index;
 
 	index = 0;
 	if (get_strarr_len(strarr) == 0)
@@ -93,6 +164,16 @@ void	print_str_arr(char **strarr)
 		while (strarr[index])
 			printf("%s\n", strarr[index++]);
 	}
+}
+
+int main(void)
+{
+	char *command = "ls -l|grep \"file>output.txt<<input.txt>>output2.txt";
+	char **tokens;
+
+	tokens = tokenise(command);
+	print_str_arr(tokens);
+	return (0);
 }
 
 // TESTS
@@ -151,13 +232,3 @@ void	print_str_arr(char **strarr)
 // }
 
 // tokenise function
-
-int	main(void)
-{
-	char *command = "echo -n 'Hello'";
-	char **tokens;
-
-	tokens = tokenise(command);
-	print_str_arr(tokens);
-	return (0);
-}
