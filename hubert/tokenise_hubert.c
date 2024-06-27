@@ -5,6 +5,7 @@ char **tokenise(char *buf);
 char **add_to_strarr(char **oldtokenarr, char *token);
 int get_strarr_len(char **tokenarr);
 int ft_isspace(char c);
+int	ft_isempty(char	*str);
 int ft_isbashdelimiter(char *pt);
 int ft_isquote(char pt);
 
@@ -25,6 +26,9 @@ char **tokenise(char *buf)
 	index = 0;
 	quoteopen = 0;
 	start = index;
+	tokenarr = calloc(sizeof(char *), 1);
+	if (!tokenarr)
+		return (NULL);
 	while (buf[index] && ft_isspace(buf[index]))
 		index++;
 	while (buf[index])
@@ -36,23 +40,9 @@ char **tokenise(char *buf)
 			free(tokencurrent);
 			break;
 		}
-		if (ft_isquote(buf[index]) == 0)
+		if (quoteopen > 0)
 		{
-			if (quoteopen == 1)
-			{
-				index++;
-				continue;
-			}
-		}	
-		else 
-		{
-			if (quoteopen == 0)
-			{
-				quoteopen = 1;
-				index++;
-				continue;
-			}
-			else
+			if (ft_isquote(buf[index]) == quoteopen)
 			{
 				quoteopen = 0;
 				tokencurrent = ft_substr(buf, start, index - start + 1);
@@ -60,8 +50,20 @@ char **tokenise(char *buf)
 				free(tokencurrent);
 				start = index + 1;
 			}
+			else
+			{
+				index++;
+				continue;
+			}
 		}
-		if (ft_isbashdelimiter(&(buf[index])))
+		else if (ft_isquote(buf[index]))
+		{
+			quoteopen = ft_isquote(buf[index]);
+			start = index;
+			index++;
+			continue;
+		}		
+		else if (ft_isbashdelimiter(&(buf[index])))
 		{
 			tokencurrent = ft_substr(buf, start, index - start);
 			tokenarr = add_to_strarr(tokenarr, tokencurrent);
@@ -70,9 +72,9 @@ char **tokenise(char *buf)
 			{
 				if (ft_isspace(buf[index]) == 0)
 				{
-				tokencurrent = ft_substr(buf, index, 1);
-				tokenarr = add_to_strarr(tokenarr, tokencurrent);
-				free(tokencurrent);
+					tokencurrent = ft_substr(buf, index, 1);
+					tokenarr = add_to_strarr(tokenarr, tokencurrent);
+					free(tokencurrent);
 				}
 			}
 			else
@@ -84,10 +86,8 @@ char **tokenise(char *buf)
 			}
 			start = index + 1;
 		}
-		while (buf[index] && ft_isspace(buf[index]))
-			index++;
 		index++;
-	}
+	}	
 	return (tokenarr);
 }
 
@@ -99,6 +99,19 @@ int ft_isspace(char c)
 		return (1);
 	return (0);
 }
+
+// checks if string is empty, only containing whitespaces
+int	ft_isempty(char	*str)
+{
+	while (*str)
+	{
+		if (!ft_isspace(*str))
+			return (0);
+		str++;
+	}
+	return (1);
+}
+
 
 // checks if its bash delimiter (|, spaces, \0, <, <<, >, >>)
 // returns 0 if not delimiter, else number of spaces occpied by delimeter
@@ -115,10 +128,13 @@ int ft_isbashdelimiter(char *pt)
 // returns 0 if not quote, else 1
 int ft_isquote(char pt)
 {
-	if (pt == '\'' || pt == '"')
+	if (pt == '\'')
 		return (1);
+	if (pt == '"')
+		return (2);
 	return (0);
 }
+
 
 // Adds a string to the string array.
 // If string array is NULL, it will be automatically initialised.
@@ -127,16 +143,19 @@ int ft_isquote(char pt)
 char **add_to_strarr(char **oldstrarr, char *token)
 {
 	int oldsize;
+	char *newentry;
 	char **newtokenarr;
 
-	if (!oldstrarr)
-		oldstrarr = ft_calloc(sizeof(char *), 1);
+	if (ft_isempty(token))
+		return (oldstrarr);
 	oldsize = get_strarr_len(oldstrarr);
 	newtokenarr = ft_calloc(sizeof(char *), oldsize + 2);
-	newtokenarr[oldsize] = ft_strdup(token);
+	newentry= ft_strdup(token);
+	newtokenarr[oldsize] =  ft_strtrim(newentry, " \t\n\v\f\r");
 	while (--oldsize >= 0)
 		newtokenarr[oldsize] = oldstrarr[oldsize];
 	free(oldstrarr);
+	free(newentry);
 	return (newtokenarr);
 }
 
@@ -168,7 +187,8 @@ void print_str_arr(char **strarr)
 
 int main(void)
 {
-	char *command = "ls -l|grep \"file>output.txt<<input.txt>>output2.txt";
+	char *command = "ls -l|grep \"file\" > output.txt << input.txt>>output2.txt";
+	// char *command = "grep \"file>output";
 	char **tokens;
 
 	tokens = tokenise(command);
