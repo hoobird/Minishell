@@ -62,7 +62,20 @@ char **tokenise(char *buf)
 			start = index;
 			index++;
 			continue;
-		}		
+		}
+		else if (buf[index] == '$')
+		{
+			tokencurrent = ft_substr(buf, start, index - start);
+			tokenarr = add_to_strarr(tokenarr, tokencurrent);
+			free(tokencurrent);
+			start = index;
+			while (buf[index] && ft_isbashdelimiter(&(buf[index])) == 0)
+				index++;
+			tokencurrent = ft_substr(buf, start, index - start);
+			tokenarr = add_to_strarr(tokenarr, tokencurrent);
+			free(tokencurrent);
+			start = index;
+		}
 		else if (ft_isbashdelimiter(&(buf[index])))
 		{
 			tokencurrent = ft_substr(buf, start, index - start);
@@ -187,7 +200,7 @@ void print_str_arr(char **strarr)
 
 int main(void)
 {
-	char *command = "ls -l|grep \"file\" > output.txt << input.txt>>output2.txt";
+	char *command = "ls -l|grep \"file\" > output.txt << input.txt>>output2.txt | echo $hello | echo \"$world\"" ;
 	// char *command = "grep \"file>output";
 	char **tokens;
 
