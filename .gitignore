@@ -4,3 +4,4 @@ obj/
 *.a
 .vscode/
 test/
+a.out
