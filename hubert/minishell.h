@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/03 22:54:51 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/08 17:41:43 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define MINISHELL_H
 
 # define PROMPT "minishell>> "
-
 
 // For printf, perror
 #include <stdio.h>        
@@ -46,5 +45,25 @@
 #include <readline/history.h>  
 // For libft
 #include "libft.h"
+
+typedef enum	e_tokentype
+{
+	command = 1,
+	re_output = 41,	// redirection >  be 41
+	re_append = 42,	// redirection >> be 42
+	re_input = 43,	// redirection <  be 43
+	re_heredoc = 44	// redirection << be 44
+}				t_tokentype;
+
+// perror.c
+int	printerror(char	*errormsg);
+
+
+typedef struct s_token
+{
+	char	*token;
+	t_tokentype type;
+}			t_token;
+
 
 # endif
