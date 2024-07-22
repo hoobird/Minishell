@@ -20,6 +20,15 @@
 
 # include "minishell.h"
 
+typedef enum	e_tokentype
+{
+	command = 1,
+	re_output = 41,	// redirection >  be 41
+	re_append = 42,	// redirection >> be 42
+	re_input = 43,	// redirection <  be 43
+	re_heredoc = 44	// redirection << be 44
+}				t_tokentype;
+
 // redirection <
 int	redirect_input(int fd2)
 {

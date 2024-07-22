@@ -4,8 +4,8 @@
 char **tokenise(char *buf);
 char **add_to_strarr(char **oldtokenarr, char *token);
 int get_strarr_len(char **tokenarr);
-int ft_isspace(char c);
-int	ft_isempty(char	*str);
+int mini_isspace(char c);
+int	mini_isempty(char	*str);
 int ft_isbashdelimiter(char *pt);
 int ft_isquote(char pt);
 
@@ -29,7 +29,7 @@ char **tokenise(char *buf)
 	tokenarr = calloc(sizeof(char *), 1);
 	if (!tokenarr)
 		return (NULL);
-	while (buf[index] && ft_isspace(buf[index]))
+	while (buf[index] && mini_isspace(buf[index]))
 		index++;
 	while (buf[index])
 	{
@@ -83,7 +83,7 @@ char **tokenise(char *buf)
 			free(tokencurrent);
 			if (ft_isbashdelimiter(&(buf[index])) == 1)
 			{
-				if (ft_isspace(buf[index]) == 0)
+				if (mini_isspace(buf[index]) == 0)
 				{
 					tokencurrent = ft_substr(buf, index, 1);
 					tokenarr = add_to_strarr(tokenarr, tokencurrent);
@@ -106,7 +106,7 @@ char **tokenise(char *buf)
 
 // returns 1 if char is whitespace,
 // else return 0
-int ft_isspace(char c)
+int mini_isspace(char c)
 {
 	if ((c >= 9 && c <= 13) || c == 32)
 		return (1);
@@ -114,11 +114,11 @@ int ft_isspace(char c)
 }
 
 // checks if string is empty, only containing whitespaces
-int	ft_isempty(char	*str)
+int	mini_isempty(char	*str)
 {
 	while (*str)
 	{
-		if (!ft_isspace(*str))
+		if (!mini_isspace(*str))
 			return (0);
 		str++;
 	}
@@ -132,7 +132,7 @@ int ft_isbashdelimiter(char *pt)
 {
 	if (ft_strncmp(pt, ">>", 2) == 0 || ft_strncmp(pt, "<<", 2) == 0)
 		return (2);
-	if (*pt == '|' || ft_isspace(*pt) || *pt == '<' || *pt == '>' || *pt == '$')
+	if (*pt == '|' || mini_isspace(*pt) || *pt == '<' || *pt == '>' || *pt == '$')
 		return (1);
 	return (0);
 }
@@ -159,7 +159,7 @@ char **add_to_strarr(char **oldstrarr, char *token)
 	char *newentry;
 	char **newtokenarr;
 
-	if (ft_isempty(token))
+	if (mini_isempty(token))
 		return (oldstrarr);
 	oldsize = get_strarr_len(oldstrarr);
 	newtokenarr = ft_calloc(sizeof(char *), oldsize + 2);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hulim <hulim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/08 17:41:43 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/22 21:58:30 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,14 +46,7 @@
 // For libft
 #include "libft.h"
 
-typedef enum	e_tokentype
-{
-	command = 1,
-	re_output = 41,	// redirection >  be 41
-	re_append = 42,	// redirection >> be 42
-	re_input = 43,	// redirection <  be 43
-	re_heredoc = 44	// redirection << be 44
-}				t_tokentype;
+
 
 // perror.c
 int	printerror(char	*errormsg);

@@ -177,12 +177,12 @@ void	envpc_print(char **envpc)
 // 	envpc = envp_copy(envp);
 // 	printf("Length: %d\n", envpc_length(envpc));
 // 	envpc_add(&envpc, "test1", "fries");
-// 	envpc_add(&envpc, "test2", "chicken nuggets");
-// 	envpc_add(&envpc, "test3", "test");
-// 	printf("Search for test1: %s\n", envpc[envpc_find_index(envpc, "test1")]);
-// 	printf("Get value of test1: %s\n", envpc_get_value(envpc, "test1"));
-// 	envpc_remove(&envpc, "test2");
 // 	envpc_print(envpc);
+// 	printf("Get value of test1: %s\n", envpc_get_value(envpc, "test1"));
+// 	// envpc_add(&envpc, "test2", "chicken nuggets");
+// 	// envpc_add(&envpc, "test3", "test");
+// 	// printf("Search for test1: %s\n", envpc[envpc_find_index(envpc, "test1")]);
+// 	// envpc_remove(&envpc, "test2");
 // 	envpc_free(&envpc);
 // 	return (0);
 // }
