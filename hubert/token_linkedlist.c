@@ -148,12 +148,29 @@ void	free_tokenlist(t_token **token)
 	while (*token != NULL)
 	{
 		temp = (*token)->next;
-		printf("freeing token: %s\n", (*token)->string);
 		free((*token)->string);
 		free(*token);
 		*token = temp;
 	}
 	*token = NULL;
+}
+
+char	*tokenstostring(t_token *token)
+{
+	char	*str;
+	char	*temp;
+
+	if (token == NULL)
+		return (NULL);
+	str = ft_strdup("");
+	while (token != NULL)
+	{
+		temp = ft_strjoin(str, token->string);
+		free(str);
+		str = temp;
+		token = token->next;
+	}
+	return (str);
 }
 
 // print token list
@@ -169,7 +186,7 @@ void	print_tokenlist(t_token *token)
 	i = 0;
 	while (token != NULL)
 	{
-		printf("Token %d: %s (%d)\n", i, token->string, token->type);
+		printf("Token %d: ^%s^ (%d)\n", i, token->string, token->type);
 		token = token->next;
 		i++;
 	}

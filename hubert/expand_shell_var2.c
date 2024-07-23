@@ -1,30 +1,8 @@
 # include "minishell.h"
 # include "builtin.h"
 
-// cc expand_shell_var2.c builtin_env.c ../Libft/libft.a
 
-char	*addquotes(char* input, int	type) // type: 1 = single quote, 2 = double quote
-{
-	char	*output;
-
-	output = ft_calloc(ft_strlen(input) + 3, sizeof(char));
-	if (type == 1)
-	{
-		output[0] = '\'';
-		ft_strlcpy(&output[1], input, ft_strlen(input) + 1);
-		output[ft_strlen(input) + 1] = '\'';
-	}
-	else if (type == 2)
-	{
-		output[0] = '"';
-		ft_strlcpy(&output[1], input, ft_strlen(input) + 1);
-		output[ft_strlen(input) + 1] = '"';
-	}
-	free(input);
-	return (output);
-}	
-
-int	checkshelldelimiter(char *start)
+int	check_envvar_delimiter(char *start)
 {
 	int	i;
 
@@ -39,55 +17,72 @@ int	checkshelldelimiter(char *start)
 
 }
 
-char	*expandshellvar(char *input, char **env)
+char	*shell_expand_append(char **envp, char **str, char *input, int len)
+{
+	char	*temp;
+	char 	*key;
+	char	*value;
+
+	if (*input == '$')
+	{
+		key = ft_substr(input, 1, len - 1);
+		value = envpc_get_value(envp, key);
+		if (value)
+			temp = ft_strjoin(*str, value);
+		else
+			temp = ft_strjoin(*str, "");
+	}
+	else
+	{
+		key = ft_substr(input, 0, len);
+		temp = ft_strjoin(*str, key);
+	}
+	free(*str);
+	free(key);
+	return (temp);
+}
+
+char	*expandshellvar(char *input, char **envp)
 {
 	int		i;
-	int		quoted;
-	int		shellvarlen;
-	char	*front;
-	char 	*back;
+	int		shellvar_len;
+	char	*output;
 
-	quoted = 0;
-	i = 0;
+	i=0;
+	output = ft_strdup("");
 	while (input[i])
 	{
-		if (input[i] == '\'')
+		if (input[i] == '$')
 		{
-			if (quoted == 1)
-				quoted = 0;
+			shellvar_len = check_envvar_delimiter(&input[i]);
+			if (shellvar_len == 1)
+				output = shell_expand_append(envp, &output, &input[i], 1);
 			else
-				quoted = 1;
+				output = shell_expand_append(envp, &output, &input[i], shellvar_len);
+			i+= shellvar_len;
 		}
-		else if (input[i] == '"')
+		else
 		{
-			if (quoted == 2)
-				quoted = 0;
-			else
-				quoted = 2;
+			output = shell_expand_append(envp, &output, &input[i], 1);
+			i++;
 		}
-		if (input[i] == '$' && quoted != 1)
-		{
-			shellvarlen = checkshelldelimiter(&input[i]);
-			if (shellvarlen = 1)
-			{
-				front = ft_substr(input, 0, i);
-				back = ft_strdup(&input[i + 1]);
-				free(input);
-				input = ft_strjoin(front, back);
-				free(front);
-				free(back);
-			}
-		}
-
-		i++;
 	}
-	return NULL;
+	return (output);
 }
 
-
+/*
+// cc expand_shell_var2.c builtin_env.c ../Libft/libft.a
 int	main(int argc, char **argv, char **env)
 {
-	char	*input = "$$HOME $HI";
-	printf("len = %d\n", checkshelldelimiter(input));
+	char	*output;
+	char 	**envpc;
+	char	*input = "$HOME$HI $USER $HOME$USER$HOME";
+
+	envpc = envp_copy(env);
+	output = expandshellvar(input, envpc);
+	printf("%s\n", output);
+	free(output);
+	envpc_free(&envpc);
 	return (0);
 }
+*/

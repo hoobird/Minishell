@@ -11,6 +11,7 @@ typedef enum	e_tokentype
 	RE_INPUT = 43,	// redirection <  be 43
 	RE_HEREDOC = 44,	// redirection << be 44
 	PIPE = 5,
+	WHITESPACE = 6,
 	ERROR_UNCLOSED_QUOTES = 90,
 }				t_tokentype;
 
@@ -18,6 +19,7 @@ typedef struct s_token
 {
 	char 		*string; /* Zero terminated string. */
 	t_tokentype	type;	/* Flags associated with this word. */
+	// int			postspace; /* 0 if no space after, 1 if got space after*/	
 	struct s_token		*next;
 }				t_token;
 
@@ -32,6 +34,7 @@ t_token	*get_token(t_token *token, int index);
 int		search_token(t_token *token, char *word);
 void	remove_token(t_token **token, int index);
 void	free_tokenlist(t_token **token);
+char	*tokenstostring(t_token *token);
 void	print_tokenlist(t_token *token);
 
 

@@ -20,5 +20,10 @@ void	builtin_pwd(char **arg, char ***envpc);
 void	builtin_echo(char *flag, char **arg);
 int		check_only_n(char *flag);
 
+// expand_shell_var2.c
+int	check_envvar_delimiter(char *start);
+char	*shell_expand_append(char **envp, char **str, char *input, int len);
+char	*expandshellvar(char *input, char **envp);
+
 # endif
 
