@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/22 21:58:30 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/23 01:11:50 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,12 +51,6 @@
 // perror.c
 int	printerror(char	*errormsg);
 
-
-typedef struct s_token
-{
-	char	*token;
-	t_tokentype type;
-}			t_token;
 
 
 # endif

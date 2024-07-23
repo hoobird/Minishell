@@ -2,9 +2,9 @@
 
 // Test case 
 char **commands[4] = {
-    (char *[]){"cat", "testfile.txt", NULL},
-    (char *[]){"wc", "-l", NULL},
-    (char *[]){"cat", "-e", NULL},
+    (char *[]){"cat", NULL},
+    (char *[]){"cat", NULL},
+    (char *[]){"ls", NULL},
     NULL
 };
 
@@ -66,10 +66,10 @@ int execute(char ***cmds)
             close(pipelist[cmdindex - 1][0]); // close read end of previous pipe 
             close(pipelist[cmdindex][1]); // close write end of current pipe
         }
-        while (waitpid(-1, NULL, 0))
-            ;
         cmdindex++;
     }
+    while (waitpid(-1, NULL, 0))
+        ;
     return (0);
 }
 

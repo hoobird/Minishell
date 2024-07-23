@@ -3,25 +3,36 @@
 
 typedef enum	e_tokentype
 {
-	word = 1,
-	squote = 2,
-	dquote = 3,
-	re_output = 41,	// redirection >  be 41
-	re_append = 42,	// redirection >> be 42
-	re_input = 43,	// redirection <  be 43
-	re_heredoc = 44	// redirection << be 44
+	WORD = 1,
+	SQUOTE = 2,
+	DQUOTE = 3,
+	RE_OUTPUT = 41,	// redirection >  be 41
+	RE_APPEND = 42,	// redirection >> be 42
+	RE_INPUT = 43,	// redirection <  be 43
+	RE_HEREDOC = 44,	// redirection << be 44
+	PIPE = 5,
+	ERROR_UNCLOSED_QUOTES = 90,
 }				t_tokentype;
 
-typedef struct s_word_desc
+typedef struct s_token
 {
-	char *word; /* Zero terminated string. */
-	int flags;	/* Flags associated with this word. */
-}	t_word_desc;
+	char 		*string; /* Zero terminated string. */
+	t_tokentype	type;	/* Flags associated with this word. */
+	struct s_token		*next;
+}				t_token;
 
-typedef struct s_word_list
-{
-	struct s_word_list *next;
-	t_word_desc *word;
-}	t_word_list;
+// token_linkedlist.c
+t_token	*init_tokenlist(char *word, t_tokentype type);
+int		tokenlist_len(t_token *token);
+t_token	*get_lasttoken(t_token *token);
+void	add_token(t_token *token, char *word, t_tokentype type);
+void	add_token_after(t_token *token, char *word, t_tokentype type);
+int		get_tokenindex(t_token *token, t_token *target);
+t_token	*get_token(t_token *token, int index);
+int		search_token(t_token *token, char *word);
+void	remove_token(t_token **token, int index);
+void	free_tokenlist(t_token **token);
+void	print_tokenlist(t_token *token);
+
 
 #endif
