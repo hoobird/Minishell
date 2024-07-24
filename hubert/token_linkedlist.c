@@ -157,6 +157,21 @@ void	free_tokenlist(t_token **token)
 	*token = NULL;
 }
 
+// free list of token list
+void	free_tokenlistlist(t_token ***tokenlist)
+{
+	int	i;
+
+	i = 0;
+	while ((*tokenlist)[i] != NULL)
+	{
+		free_tokenlist(&(*tokenlist)[i]);
+		i++;
+	}
+	free(*tokenlist);
+	*tokenlist = NULL;
+}
+
 char	*tokenstostring(t_token *token)
 {
 	char	*str;

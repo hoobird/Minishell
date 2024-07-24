@@ -11,6 +11,8 @@ typedef enum	e_tokentype
 	RE_INPUT = 43,	// redirection <  be 43
 	RE_HEREDOC = 44,	// redirection << be 44
 	PIPE = 5,
+	COMMAND = 6,
+	ARGS = 7,
 	// WHITESPACE = 6,
 	ERROR_UNCLOSED_QUOTES = 90,
 }				t_tokentype;
@@ -34,6 +36,7 @@ t_token	*get_token(t_token *token, int index);
 int		search_token(t_token *token, char *word);
 void	remove_token(t_token **token, int index);
 void	free_tokenlist(t_token **token);
+void	free_tokenlistlist(t_token ***tokenlist);
 char	*tokenstostring(t_token *token);
 void	print_tokenlist(t_token *token);
 

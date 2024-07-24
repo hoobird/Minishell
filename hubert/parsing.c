@@ -180,6 +180,12 @@ int	check_error_redirection_pipe(t_token *token)
 {
 	t_token	*next;
 
+	if (token-> type == PIPE)
+	{
+		printerror("Syntax error near unexpected token `|'\n");
+		free_tokenlist(&token);
+		return (1);
+	} 
 	while (token != NULL)
 	{
 		if (token->type == PIPE)
@@ -216,6 +222,7 @@ t_token	*joinredirects(t_token *token)
 	t_token	*temp;
 	t_token	*nexttoken;
 	char	*combined;
+	char	*tmp;
 
 	newtoken = NULL;
 	while (token != NULL)
@@ -223,7 +230,12 @@ t_token	*joinredirects(t_token *token)
 		if (token->type == RE_OUTPUT || token->type == RE_APPEND || token->type == RE_INPUT || token->type == RE_HEREDOC)
 		{
 			nexttoken = token->next;
-			combined = ft_strjoin(token->string, nexttoken->string);
+			if (nexttoken->type == WORD)
+				tmp = ft_strtrim(nexttoken->string, " ");
+			else
+				tmp= ft_strdup(nexttoken->string);
+			combined = ft_strjoin(token->string, tmp);
+			free(tmp);
 			check_then_add_token(&newtoken, combined, token->type, nexttoken->postspace);
 			token = nexttoken;
 		}
@@ -287,11 +299,115 @@ t_token	*retoken_word_after_expansion(t_token *etokens)
 	return (newtoken);
 }
 
+// merge together words that are stuck together
+t_token	*merge_stucktogether_words(t_token *etokens)
+{
+	t_token	*newtoken;
+	t_token	*temp;
+	char	*combined;
+
+	newtoken = NULL;
+	while (etokens->next != NULL)
+	{
+		if (etokens->postspace == 0 && etokens->type != PIPE && (etokens->next->type != PIPE || etokens->next->type != RE_OUTPUT || etokens->next->type != RE_APPEND || etokens->next->type != RE_INPUT || etokens->next->type != RE_HEREDOC))
+		{
+			combined = ft_strjoin(etokens->string, etokens->next->string);
+			check_then_add_token(&newtoken, combined, etokens->type, etokens->next->postspace);
+			etokens = etokens->next;
+		}
+		else
+		{
+			check_then_add_token(&newtoken, ft_strdup(etokens->string), etokens->type, etokens->postspace);
+		}
+		etokens = etokens->next;
+	}
+	if (etokens != NULL)
+		check_then_add_token(&newtoken, ft_strdup(etokens->string), etokens->type, etokens->postspace);
+	return (newtoken);
+}
+
+int	count_pipes(t_token *token)
+{
+	int		count;
+
+	count = 0;
+	while (token != NULL)
+	{
+		if (token->type == PIPE)
+			count++;
+		token = token->next;
+	}
+	return (count);
+}
+
+t_token	**split_by_pipe(t_token *token)
+{
+	t_token	**newtokens;
+	int		i;
+	int		pipes;
+
+	newtokens = ft_calloc(count_pipes(token) + 2, sizeof(t_token *));
+	pipes = count_pipes(token);
+	i = 0;
+	while (token != NULL)
+	{
+		if (token->type == PIPE)
+		{
+			i++;
+			token = token->next;
+		}
+		else
+		{
+			if (newtokens[i] == NULL)
+				newtokens[i] = init_tokenlist(ft_strdup(token->string), token->type, token->postspace);
+			else
+				add_token(newtokens[i], ft_strdup(token->string), token->type, token->postspace);
+			token = token->next;
+		}
+	}
+	return (newtokens);
+}
+
+// label commands and args now
+// 1. if first token is a WORD or SQUOTE or DQUOTE, then its a command
+// 2. if first token is a RE_OUTPUT, RE_APPEND, RE_INPUT, RE_HEREDOC, then move down the list until you find a WORD, SQUOTE, DQUOTE, then its a command
+// FINALLY, AFTER COMMAND IS APPOINTED, FOLLOWING WORD SQUOTE DQUOTE ARE ARGS
+// DONT NEED TO LABEL REDIRECTIONS
+void	label_commands_args(t_token **tokenlistlist)
+{
+	int		i;
+	t_token	*tokens;
+	int		commandfound;
+
+	i = 0;
+	while (tokenlistlist[i] != NULL)
+	{
+		commandfound = 0;
+		tokens = tokenlistlist[i];
+		while (tokens != NULL)
+		{
+			if (commandfound == 0 && (tokens->type == WORD || tokens->type == SQUOTE || tokens->type == DQUOTE))
+			{
+				tokens->type = COMMAND;
+				commandfound = 1;
+			}
+			else
+			{
+				if (tokens->type == WORD || tokens->type == SQUOTE || tokens->type == DQUOTE)
+					tokens->type = ARGS;
+			}
+			tokens = tokens->next;
+		}
+		i++;
+	}	
+}
+
 // cc parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c ../Libft/libft.a -g
 int main(int argc, char **argv, char **envp)
 {
 	t_token *tokens;
 	t_token *revisedtokens;
+	t_token **parse_output;
 	char	*str;
 	char	**envpc;
 
@@ -299,7 +415,7 @@ int main(int argc, char **argv, char **envp)
 	str = ft_calloc(100, sizeof(char));
 	// ft_strlcpy(str, "echo 'hello'  $USER   123\"asd\" | cat >file2 >> file3", 100);
 	// ft_strlcpy(str, "echo 'hello world'    file.txt | \"adsasd\"boss'a'", 100);
-	ft_strlcpy(str, "cat file1.txt > \"hello.txt\" >> 'hi'muah | echo $USER \"$SHELL\" '$LANGUAGE'", 100);
+	ft_strlcpy(str, "cat file1.txt > hello.txt haha >>'hi'muah | echo \"$SHELL\"$USER '$LANGUAGE'", 100);
 	// ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'$USER \"$SHELL\" 'sd' $PWD", 100);
 	// ft_strlcpy(str, "", 100);
 	
@@ -310,7 +426,14 @@ int main(int argc, char **argv, char **envp)
 	free(str);
 	// Step 1a - Error out when unclosed quotes
 	if (check_error_process_quotes(tokens))
+	{	
+		envpc_free(&envpc);
 		return (1);
+	}
+	// STEP 5 - SPLIT WORD BY SPACES
+	revisedtokens = retoken_word_after_expansion(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
 	// STEP 2  - handle special operators | > >> < <<
 	revisedtokens = handle_redirection_pipe(tokens);
 	free_tokenlist(&tokens);
@@ -318,7 +441,10 @@ int main(int argc, char **argv, char **envp)
 	// Step 2a - check if redirection not next to each other
 	// 			check if pipe is not next to pipe
 	if (check_error_redirection_pipe(tokens))
+	{	
+		envpc_free(&envpc);
 		return (1);
+	}
 	// STEP 3 - join redirects with file to the right
 	revisedtokens = joinredirects(tokens);
 	free_tokenlist(&tokens);
@@ -327,12 +453,25 @@ int main(int argc, char **argv, char **envp)
 	revisedtokens = handle_shellvars(envpc, tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 5 - SPLIT WORD BY SPACES
-	revisedtokens = retoken_word_after_expansion(tokens);
-	free_tokenlist(&tokens);
 	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
-
-	print_tokenlist(revisedtokens);
-	free_tokenlist(&revisedtokens);
+	revisedtokens = merge_stucktogether_words(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 7 - split command and args
+	parse_output = split_by_pipe(tokens);
+	free_tokenlist(&tokens);
+	// STEP 8 - label commands and args
+	label_commands_args(parse_output);
+	int i = 0;
+	while (parse_output[i] != NULL)
+	{
+		printf("Command: %d\n", i);
+		print_tokenlist(parse_output[i]);
+		i++;
+	}
+	free_tokenlistlist(&parse_output);
+	// print_tokenlist(revisedtokens);
+	// free_tokenlist(&revisedtokens);
+	envpc_free(&envpc);
 	return (0);
 }
