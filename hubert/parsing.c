@@ -13,14 +13,12 @@ int ft_isbashdelimiter(char *pt)
 	return (0);
 }
 
-int	get_spaces_after(char *str)
+// return 1 if there is space, returns 0 if theres no space
+int	check_if_space(char *str)
 {
-	int	i;
-
-	i = 0;
-	while (str[i] && (str[i] == ' ' | str[i] == '\t'))
-		i++;
-	return (i);
+	if (*str == ' ' || *str == '\t')
+		return (1);
+	return (0);
 }
 
 // check for redirections and pipes
@@ -87,29 +85,29 @@ t_token	*process_quotes(char *str)
 			if (quoted == 0)
 			{
 				// add whats before the quote
-				if (i - start > 0)
-					check_then_add_token(&token, ft_substr(str, start, i - start), WORD, get_spaces_after(&str[start + i]));
+				if (i - start > 0) // if there is something before the quote
+					check_then_add_token(&token, ft_substr(str, start, i - start), WORD, check_if_space(&str[i - 1]));
 				quoted = str[i];
 				start = i;
 			}
 			else
 			{
 				if (str[i] == '\'')
-					check_then_add_token(&token, ft_substr(str, start+1, i - start-1), SQUOTE, get_spaces_after(&str[start + i]));
+					check_then_add_token(&token, ft_substr(str, start+1, i - start-1), SQUOTE, check_if_space(&str[i+1]));
 				else
-					check_then_add_token(&token, ft_substr(str, start+1, i - start-1), DQUOTE, get_spaces_after(&str[start + i]));
+					check_then_add_token(&token, ft_substr(str, start+1, i - start-1), DQUOTE, check_if_space(&str[i+1]));
 				quoted = 0;
 				start = i + 1;
 			}
 		}
 		i++;
 	}
-	if (i - start > 0)
+	if (i - start > 0) // for the last word
 	{
 		if (quoted == 0)
-			check_then_add_token(&token, ft_substr(str, start, i - start), WORD, get_spaces_after(&str[start + i]));
+			check_then_add_token(&token, ft_substr(str, start, i - start), WORD, check_if_space(&str[i - 1]));
 		else
-			check_then_add_token(&token, ft_substr(str, start, i - start), ERROR_UNCLOSED_QUOTES, get_spaces_after(&str[start + i]));
+			check_then_add_token(&token, ft_substr(str, start, i - start), ERROR_UNCLOSED_QUOTES, 0);
 	}
 	return (token);
 }
@@ -148,17 +146,17 @@ t_token	*handle_redirection_pipe(t_token *token)
 			{
 				if (check_redirection_pipe_type(&(token->string[i])))
 				{
-					if (i - start > 0)
-						check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, get_spaces_after(&token->string[start + i]));
+					if (i - start > 0) // if there is something before the redirection
+						check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, check_if_space(&token->string[i - 1]));
 					type = check_redirection_pipe_type(&(token->string[i]));
 					if (type == RE_APPEND || type == RE_HEREDOC)
 					{
-						check_then_add_token(&revisedtoken, ft_substr(token->string, i, 2), type, get_spaces_after(&token->string[start + i]));
+						check_then_add_token(&revisedtoken, ft_substr(token->string, i, 2), type, 0); // no need to check space
 						i += 2;
 					}
 					else
 					{
-						check_then_add_token(&revisedtoken, ft_substr(token->string, i, 1), type, get_spaces_after(&token->string[start + i]));
+						check_then_add_token(&revisedtoken, ft_substr(token->string, i, 1), type, 0); // no need to check space
 						i++;
 					}
 					start = i;
@@ -167,7 +165,7 @@ t_token	*handle_redirection_pipe(t_token *token)
 					i++;
 			}
 			if (i - start > 0)
-				check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, get_spaces_after(&token->string[start + i]));
+				check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, token->postspace); // last token inherit the token's postspace
 		}
 		else
 			check_then_add_token(&revisedtoken, ft_strdup(token->string), token->type, token->postspace);
@@ -301,8 +299,8 @@ int main(int argc, char **argv, char **envp)
 	str = ft_calloc(100, sizeof(char));
 	// ft_strlcpy(str, "echo 'hello'  $USER   123\"asd\" | cat >file2 >> file3", 100);
 	// ft_strlcpy(str, "echo 'hello world'    file.txt | \"adsasd\"boss'a'", 100);
-	// ft_strlcpy(str, "cat file1.txt > \"hello.txt\" >> 'hi' | wc -l", 100);
-	ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'  $USER\"$SHELL\" 'sd' $PWD", 100);
+	ft_strlcpy(str, "cat file1.txt > \"hello.txt\" >> 'hi'muah | echo $USER \"$SHELL\" '$LANGUAGE'", 100);
+	// ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'$USER \"$SHELL\" 'sd' $PWD", 100);
 	// ft_strlcpy(str, "", 100);
 	
 	printf("Command: ^%s\n", str);
@@ -310,31 +308,31 @@ int main(int argc, char **argv, char **envp)
 	// STEP 1 - handle quotes
 	tokens = process_quotes(str);
 	free(str);
-	print_tokenlist(tokens);
-	// // Step 1a - Error out when unclosed quotes
-	// if (check_error_process_quotes(tokens))
-	// 	return (1);
-	// // STEP 2  - handle special operators | > >> < <<
-	// revisedtokens = handle_redirection_pipe(tokens);
-	// free_tokenlist(&tokens);
-	// tokens = revisedtokens;
-	// // Step 2a - check if redirection not next to each other
-	// // 			check if pipe is not next to pipe
-	// if (check_error_redirection_pipe(tokens))
-	// 	return (1);
-	// // STEP 3 - join redirects with file to the right
-	// revisedtokens = joinredirects(tokens);
-	// free_tokenlist(&tokens);
-	// tokens = revisedtokens;
-	// // STEP 4 - handle shell vars
-	// revisedtokens = handle_shellvars(envpc, tokens);
-	// free_tokenlist(&tokens);
-	// tokens = revisedtokens;
-	// // STEP 5 - SPLIT WORD BY SPACES
-	// revisedtokens = retoken_word_after_expansion(tokens);
-	// free_tokenlist(&tokens);
+	// Step 1a - Error out when unclosed quotes
+	if (check_error_process_quotes(tokens))
+		return (1);
+	// STEP 2  - handle special operators | > >> < <<
+	revisedtokens = handle_redirection_pipe(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// Step 2a - check if redirection not next to each other
+	// 			check if pipe is not next to pipe
+	if (check_error_redirection_pipe(tokens))
+		return (1);
+	// STEP 3 - join redirects with file to the right
+	revisedtokens = joinredirects(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 4 - handle shell vars
+	revisedtokens = handle_shellvars(envpc, tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 5 - SPLIT WORD BY SPACES
+	revisedtokens = retoken_word_after_expansion(tokens);
+	free_tokenlist(&tokens);
+	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
 
-	// print_tokenlist(revisedtokens);
-	// free_tokenlist(&revisedtokens);
+	print_tokenlist(revisedtokens);
+	free_tokenlist(&revisedtokens);
 	return (0);
 }
