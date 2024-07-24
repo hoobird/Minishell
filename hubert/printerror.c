@@ -8,6 +8,5 @@ int	printerror(char	*errormsg)
 {
 	ft_putstr_fd("minishell: " ,2);
 	ft_putstr_fd(errormsg, 2);
-	ft_putstr_fd("\n", 2);
 	return (0);
 }

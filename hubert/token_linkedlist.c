@@ -2,7 +2,7 @@
 #include "parsing.h"
 
 // initialise the token list (linked list) with first token
-t_token	*init_tokenlist(char *word, t_tokentype type)
+t_token	*init_tokenlist(char *word, t_tokentype type, int spacesafter)
 {
 	t_token	*token;
 
@@ -15,6 +15,7 @@ t_token	*init_tokenlist(char *word, t_tokentype type)
 	token->string = word;
 	token->type = type;
 	token->next = NULL;
+	token->postspace=spacesafter;
 	return (token);
 }
 
@@ -41,7 +42,7 @@ t_token	*get_lasttoken(t_token *token)
 }
 
 // add token to the end of the token list
-void	add_token(t_token *token, char *word, t_tokentype type)
+void	add_token(t_token *token, char *word, t_tokentype type, int spacesafter)
 {
 	t_token	*newtoken;
 
@@ -54,11 +55,12 @@ void	add_token(t_token *token, char *word, t_tokentype type)
 	newtoken->string = word;
 	newtoken->type = type;
 	newtoken->next = NULL;
+	newtoken->postspace=spacesafter;
 	get_lasttoken(token)->next = newtoken;
 }
 
 // add 1 token after specified token
-void	add_token_after(t_token *token, char *word, t_tokentype type)
+void	add_token_after(t_token *token, char *word, t_tokentype type, int spacesafter)
 {
 	t_token	*newtoken;
 
@@ -186,7 +188,7 @@ void	print_tokenlist(t_token *token)
 	i = 0;
 	while (token != NULL)
 	{
-		printf("Token %d: ^%s^ (%d)\n", i, token->string, token->type);
+		printf("Token %d: ^%s^ [type: %d] [spacesafter: %d]\n", i, token->string, token->type, token->postspace);
 		token = token->next;
 		i++;
 	}
@@ -197,6 +199,7 @@ void	print_tokenlist(t_token *token)
 int	main()
 {
 	t_token	*token;
+	t_token *last;
 	char	*word1;
 	char	*word2;
 	char	*word3;
@@ -207,16 +210,16 @@ int	main()
 	word3 = ft_strdup(">");
 	word4 = ft_strdup("output.txt");
 
-	token = init_tokenlist(word1, WORD);
-	add_token(token, word2, WORD);
-	add_token(token, word3, RE_OUTPUT);
-	add_token(token, word4, WORD);
+	token = init_tokenlist(word1, WORD, 1);
+	add_token(token, word2, WORD, 1);
+	add_token(token, word3, RE_OUTPUT, 1);
+	add_token(token, word4, WORD, 1);
 	
 	print_tokenlist(token);
 	printf("Token list length: %d\n", tokenlist_len(token));
 	// print last token
-	token = get_lasttoken(token);
-	printf("Last token: %s\n", token->string);
+	last = get_lasttoken(token);
+	printf("Last token: %s\n", last->string);
 	remove_token(&token, 0);
 	print_tokenlist(token);
 	free_tokenlist(&token);
