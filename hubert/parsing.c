@@ -194,7 +194,7 @@ int	check_error_redirection_pipe(t_token *token)
 {
 	t_token	*nexttoken;
 
-	if (token-> type == PIPE)
+	if (token != NULL && token-> type == PIPE)
 	{
 		printerror("Syntax error near unexpected token `|'\n");
 		return (1);
@@ -506,10 +506,10 @@ int main(int argc, char **argv, char **envp)
 	// ft_strlcpy(str, "echo 'hello world'    file.txt | \"adsasd\"boss'a'", 100);
 	// ft_strlcpy(str, "cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL$USER\" '$LANGUAGE'>", 100);
 	// ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'$USER \"$SHELL\" 'sd' $PWD", 100);
-	ft_strlcpy(str, "cat file1> fil'2'.t\"x\"t", 100);
+	// ft_strlcpy(str, "cat file1> fil'2'.t\"x\"t", 100);
 	// ft_strlcpy(str, "echo 'file1'\"ads\"'asd'", 100);
 	// ft_strlcpy(str, "echo test \"$SHELL$USER\" $PWD \"$USER $SHLVL\" hello ", 100);
-	
+	ft_strlcpy(str, "", 100);
 	printf("Command: ^%s\n", str);
 
 	// STEP 1 - handle quotes
@@ -570,3 +570,4 @@ int main(int argc, char **argv, char **envp)
 	return (0);
 }
 */
+

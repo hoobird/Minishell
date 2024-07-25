@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/25 19:45:53 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/25 22:55:17 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,18 @@
 #include "builtin.h"
 
 
+// piping.c
+void    printpipelist(int **pipelist);
+int 	**generatepipes(int n);
+
 // perror.c
 int	printerror(char	*errormsg);
 
+typedef struct	s_command_life_cycle
+{
+	t_token		**tokenlistlist;
+	int			**pipefd;
+}			t_command_life_cycle;
 
 
 # endif

@@ -91,7 +91,7 @@ int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
 		if (fileright)
 			fd2 = open(fileright, O_WRONLY | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
 		if (fd1 < 0 || fd2 < 0)
-			return(printerror("redirection > : file open() failed"));
+			return(printerror("redirection > : file open() failed\n"));
 		redirect_output(fd1, fd2);
 		if (fd1 != STDIN_FILENO)
 			close(fd1);
@@ -104,7 +104,7 @@ int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
 		if (fileright)
 			fd2 = open(fileright, O_WRONLY | O_APPEND | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
 		if (fd1 < 0 || fd2 < 0)
-			return(printerror("redirection >> : file open() failed"));
+			return(printerror("redirection >> : file open() failed\n"));
 		redirect_output(fd1, fd2);
 		if (fd1 != STDIN_FILENO)
 			close(fd1);
@@ -113,7 +113,7 @@ int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
 	{
 			fd2 = open(fileright, O_RDONLY);
 			if (fd2 < 0)
-				return(printerror("redirection < : file open() failed"));
+				return(printerror("redirection < : file open() failed\n"));
 			redirect_input(fd2);
 	}
 	else if (tnum == 44)

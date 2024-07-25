@@ -8,22 +8,6 @@ char **commands[4] = {
     NULL
 };
 
-int **generatepipes(int n)
-{
-    int **pipes;
-    int i;
-
-    pipes = (int **)ft_calloc(n + 1, sizeof(int *));
-    i = 0;
-    while (i < n)
-    {
-        pipes[i] = (int *)ft_calloc(3, sizeof(int));  // {pipeOUT, pipeIN, NULL}
-        pipe(pipes[i]);
-        i++;
-    }   
-    return (pipes);
-}
-
 int execute(char ***cmds)
 {
     int cmdindex;
@@ -81,23 +65,12 @@ int execute(char ***cmds)
     return (0);
 }
 
-void    printpipelist(int **pipelist)
-{
-    int i;
-
-    i = 0;
-    while (pipelist[i])
-    {
-        printf("Pipe %d: %d %d\n", i, pipelist[i][0], pipelist[i][1]);
-        i++;
-    }
-}
-// cc execute.c ../Libft/libft.a
+// cc execute.c piping.c ../Libft/libft.a
 int main()
 {
     // int **pipelist;
     // pipelist = generatepipes(2);
     // printpipelist(pipelist);
-    execute(commands);
+    // execute(commands);
     return (0);
 }

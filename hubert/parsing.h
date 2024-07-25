@@ -48,6 +48,7 @@ t_token		**parse_input_helper(t_token *tokens, char **envp);
 // token_linkedlist.c
 t_token	*init_tokenlist(char *word, t_tokentype type, int spacesafter);
 int		tokenlist_len(t_token *token);
+int		tokenlistlist_len(t_token **tokenlist);
 t_token	*get_lasttoken(t_token *token);
 void	add_token(t_token *token, char *word, t_tokentype type, int spacesafter);
 void	add_token_after(t_token *token, char *word, t_tokentype type, int spacesafter);
@@ -60,5 +61,6 @@ void	free_tokenlistlist(t_token ***tokenlist);
 char	*tokenstostring(t_token *token);
 void	print_tokenlist(t_token *token);
 void	print_tokenlistlist(t_token **tokenlist);
+int		check_tokenlistlist_empty_and_free(t_token **tokenlist);
 
 #endif
