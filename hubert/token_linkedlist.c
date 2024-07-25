@@ -190,6 +190,35 @@ char	*tokenstostring(t_token *token)
 	return (str);
 }
 
+// get token type name
+char	*get_tokentype(t_tokentype type)
+{
+	if (type == WORD)
+		return ("WORD");
+	else if (type == SQUOTE)
+		return ("SQUOTE");
+	else if (type == DQUOTE)
+		return ("DQUOTE");
+	else if (type == RE_OUTPUT)
+		return ("RE_OUTPUT");
+	else if (type == RE_APPEND)
+		return ("RE_APPEND");
+	else if (type == RE_INPUT)
+		return ("RE_INPUT");
+	else if (type == RE_HEREDOC)
+		return ("RE_HEREDOC");
+	else if (type == PIPE)
+		return ("PIPE");
+	else if (type == COMMAND)
+		return ("COMMAND");
+	else if (type == ARGS)
+		return ("ARGS");
+	else if (type == ERROR_UNCLOSED_QUOTES)
+		return ("ERROR_UNCLOSED_QUOTES");
+	else
+		return ("UNKNOWN");
+}
+
 // print token list
 void	print_tokenlist(t_token *token)
 {
@@ -203,7 +232,7 @@ void	print_tokenlist(t_token *token)
 	i = 0;
 	while (token != NULL)
 	{
-		printf("Token %d: ^%s^ [type: %d] [spacesafter: %d]\n", i, token->string, token->type, token->postspace);
+		printf("Token %d: ^%s^ [type: %s] [spacesafter: %d]\n", i, token->string, get_tokentype(token->type), token->postspace);
 		token = token->next;
 		i++;
 	}

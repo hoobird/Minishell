@@ -62,7 +62,6 @@ void check_then_add_token(t_token **token, char *word, t_tokentype type, int spa
 		i++;
 	}
 	free(word); // free the word if its just made up of spaces
-	// add_token(*token, ft_strdup(" "), WHITESPACE); // add space token
 }
 	
 // split the string into tokens normal, single_quote, double_quote
@@ -118,8 +117,7 @@ int		check_error_process_quotes(t_token *token)
 	{
 		if (token->type == ERROR_UNCLOSED_QUOTES)
 		{
-			printerror("Unclosed quotes detected");
-			free_tokenlist(&token);
+			printerror("Unclosed quotes detected\n");
 			return (1);
 		}
 		token = token->next;
@@ -178,35 +176,35 @@ t_token	*handle_redirection_pipe(t_token *token)
 // check if pipe is not next to pipe
 int	check_error_redirection_pipe(t_token *token)
 {
-	t_token	*next;
+	t_token	*nexttoken;
 
 	if (token-> type == PIPE)
 	{
 		printerror("Syntax error near unexpected token `|'\n");
-		free_tokenlist(&token);
 		return (1);
 	} 
 	while (token != NULL)
 	{
 		if (token->type == PIPE)
 		{
-			next = token->next;
-			if (next == NULL || next->type == PIPE)
+			nexttoken = token->next;
+			if (nexttoken == NULL || nexttoken->type == PIPE)
 			{
-				free_tokenlist(&token);
 				printerror("Syntax error near unexpected token `|'\n");
 				return (1);
 			}
 		}
 		else if (token->type == RE_OUTPUT || token->type == RE_APPEND || token->type == RE_INPUT || token->type == RE_HEREDOC)
 		{
-			next = token->next;
-			if (next == NULL || next->type == PIPE || next->type == RE_OUTPUT || next->type == RE_APPEND || next->type == RE_INPUT || next->type == RE_HEREDOC)
+			nexttoken = token->next;
+			if (nexttoken == NULL || nexttoken->type == PIPE || nexttoken->type == RE_OUTPUT || nexttoken->type == RE_APPEND || nexttoken->type == RE_INPUT || nexttoken->type == RE_HEREDOC)
 			{
-				free_tokenlist(&token);
 				printerror("Syntax error near unexpected token `");
-				ft_putstr_fd(token->string, 2);
-				ft_putchar_fd('\n', 2);
+				if (nexttoken != NULL)
+					ft_putstr_fd(nexttoken->string, 2);
+				else
+					ft_putstr_fd("newline", 2);
+				ft_putstr_fd("'\n", 2);
 				return (1);
 			}
 		}
@@ -401,7 +399,7 @@ void	label_commands_args(t_token **tokenlistlist)
 		i++;
 	}	
 }
-
+/*
 // cc parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c ../Libft/libft.a -g
 int main(int argc, char **argv, char **envp)
 {
@@ -415,7 +413,7 @@ int main(int argc, char **argv, char **envp)
 	str = ft_calloc(100, sizeof(char));
 	// ft_strlcpy(str, "echo 'hello'  $USER   123\"asd\" | cat >file2 >> file3", 100);
 	// ft_strlcpy(str, "echo 'hello world'    file.txt | \"adsasd\"boss'a'", 100);
-	ft_strlcpy(str, "cat file1.txt > hello.txt haha >>'hi'muah | echo \"$SHELL\"$USER '$LANGUAGE'", 100);
+	ft_strlcpy(str, "cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL$USER\" '$LANGUAGE'>", 100);
 	// ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'$USER \"$SHELL\" 'sd' $PWD", 100);
 	// ft_strlcpy(str, "", 100);
 	
@@ -426,8 +424,9 @@ int main(int argc, char **argv, char **envp)
 	free(str);
 	// Step 1a - Error out when unclosed quotes
 	if (check_error_process_quotes(tokens))
-	{	
+	{
 		envpc_free(&envpc);
+		free_tokenlist(&tokens);
 		return (1);
 	}
 	// STEP 5 - SPLIT WORD BY SPACES
@@ -443,6 +442,7 @@ int main(int argc, char **argv, char **envp)
 	if (check_error_redirection_pipe(tokens))
 	{	
 		envpc_free(&envpc);
+		free_tokenlist(&tokens);
 		return (1);
 	}
 	// STEP 3 - join redirects with file to the right
@@ -475,3 +475,4 @@ int main(int argc, char **argv, char **envp)
 	envpc_free(&envpc);
 	return (0);
 }
+*/

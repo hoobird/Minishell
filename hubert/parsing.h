@@ -13,7 +13,6 @@ typedef enum	e_tokentype
 	PIPE = 5,
 	COMMAND = 6,
 	ARGS = 7,
-	// WHITESPACE = 6,
 	ERROR_UNCLOSED_QUOTES = 90,
 }				t_tokentype;
 
@@ -39,6 +38,5 @@ void	free_tokenlist(t_token **token);
 void	free_tokenlistlist(t_token ***tokenlist);
 char	*tokenstostring(t_token *token);
 void	print_tokenlist(t_token *token);
-
 
 #endif
