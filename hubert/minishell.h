@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/23 01:11:50 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/25 19:45:53 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,14 @@
 // For readline, rl_clear_history, rl_on_new_line, rl_replace_line, rl_redisplay
 #include <readline/readline.h> 
 // For add_history
-#include <readline/history.h>  
+#include <readline/history.h> 
+
 // For libft
 #include "libft.h"
-
+// For parsing
+#include "parsing.h"
+// for builtins like env echo cd pwd export unset exit
+#include "builtin.h"
 
 
 // perror.c

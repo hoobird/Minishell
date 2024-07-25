@@ -1,5 +1,4 @@
 # include "minishell.h"
-# include "builtin.h"
 
 // check if flag only contains 'n'
 int	check_only_n(char *flag)

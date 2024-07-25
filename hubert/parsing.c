@@ -81,36 +81,52 @@ t_token	*process_quotes(char *str)
 	{
 		if (str[i] == '\'' || str[i] == '\"')
 		{
-			if (quoted == 0)
-			{
-				// add whats before the quote
-				if (i - start > 0) // if there is something before the quote
-					check_then_add_token(&token, ft_substr(str, start, i - start), WORD, check_if_space(&str[i - 1]));
-				quoted = str[i];
-				start = i;
-			}
-			else
-			{
-				if (str[i] == '\'')
-					check_then_add_token(&token, ft_substr(str, start+1, i - start-1), SQUOTE, check_if_space(&str[i+1]));
-				else
-					check_then_add_token(&token, ft_substr(str, start+1, i - start-1), DQUOTE, check_if_space(&str[i+1]));
-				quoted = 0;
-				start = i + 1;
-			}
+			process_quotes_handle_in_out_quote(&token, str, &quoted, &start, i);
 		}
 		i++;
 	}
-	if (i - start > 0) // for the last word
-	{
-		if (quoted == 0)
-			check_then_add_token(&token, ft_substr(str, start, i - start), WORD, check_if_space(&str[i - 1]));
-		else
-			check_then_add_token(&token, ft_substr(str, start, i - start), ERROR_UNCLOSED_QUOTES, 0);
-	}
+	process_quotes_add_last_word(&token, str, start, i, quoted);
 	return (token);
 }
 
+// helper function for process_quotes:
+// 		add the word before the quote and the quote to the token list
+void	process_quotes_handle_in_out_quote(t_token **token, char *str, char *quoted, int *start, int i)
+{
+	if (*quoted == 0) // if not in quote
+	{
+		if (i - *start > 0) // if there is something before the quote
+			check_then_add_token(token, ft_substr(str, *start, i - *start), WORD, check_if_space(&str[i - 1]));
+		*quoted = str[i];
+		*start = i;
+	}
+	else // if in quote
+	{
+		if (*quoted == '\'') 
+			check_then_add_token(token, ft_substr(str, *start+1, i - *start-1), SQUOTE, check_if_space(&str[i+1]));
+		else
+			check_then_add_token(token, ft_substr(str, *start+1, i - *start-1), DQUOTE, check_if_space(&str[i+1]));
+		*quoted = 0;
+		*start = i + 1;
+	}
+}
+
+// helper function for process_quotes:
+// 		add the last word to the token list
+void	process_quotes_add_last_word(t_token **token, char *str, int start, int i, int quoted)
+{
+	if (quoted == 0)
+	{
+		if (i - start > 0)
+			check_then_add_token(token, ft_substr(str, start, i - start), WORD, check_if_space(&str[i - 1]));
+	}
+	else
+	{
+			check_then_add_token(token, ft_substr(str, start+1, i - start-1), ERROR_UNCLOSED_QUOTES, 0);
+	}
+}
+
+// check if there is unclosed quotes
 int		check_error_process_quotes(t_token *token)
 {
 	while (token != NULL)
@@ -246,6 +262,7 @@ t_token	*joinredirects(t_token *token)
 	return (newtoken);
 }
 
+// expand shell vars
 t_token	*handle_shellvars(char **envp, t_token *token)
 {
 	t_token	*newtoken;
@@ -303,15 +320,23 @@ t_token	*merge_stucktogether_words(t_token *etokens)
 	t_token	*newtoken;
 	t_token	*temp;
 	char	*combined;
+	char 	*tmpcombined;
 
 	newtoken = NULL;
-	while (etokens->next != NULL)
-	{
-		if (etokens->postspace == 0 && etokens->type != PIPE && (etokens->next->type != PIPE || etokens->next->type != RE_OUTPUT || etokens->next->type != RE_APPEND || etokens->next->type != RE_INPUT || etokens->next->type != RE_HEREDOC))
+	while (etokens != NULL)
+	{	
+		temp = etokens;
+		if (etokens->type != PIPE)
 		{
-			combined = ft_strjoin(etokens->string, etokens->next->string);
-			check_then_add_token(&newtoken, combined, etokens->type, etokens->next->postspace);
-			etokens = etokens->next;
+			combined = ft_strdup(etokens->string);
+			while (etokens->next != NULL && etokens->postspace == 0 && (etokens->next->type == WORD || etokens->next->type == SQUOTE || etokens->next->type == DQUOTE))
+			{
+				tmpcombined = ft_strjoin(combined, etokens->next->string);
+				free(combined);
+				combined = tmpcombined;
+				etokens = etokens->next;
+			}
+			check_then_add_token(&newtoken, combined, temp->type, temp->postspace);
 		}
 		else
 		{
@@ -324,6 +349,7 @@ t_token	*merge_stucktogether_words(t_token *etokens)
 	return (newtoken);
 }
 
+// count number of pipes in token list
 int	count_pipes(t_token *token)
 {
 	int		count;
@@ -338,6 +364,8 @@ int	count_pipes(t_token *token)
 	return (count);
 }
 
+// split by pipe
+// returns a list of token list
 t_token	**split_by_pipe(t_token *token)
 {
 	t_token	**newtokens;
@@ -399,6 +427,69 @@ void	label_commands_args(t_token **tokenlistlist)
 		i++;
 	}	
 }
+
+// the main parsing function
+t_token	**parse_input(char *str, char **envp)
+{
+	t_token	*tokens;
+	t_token	*revisedtokens;
+	t_token	**parse_output;
+
+	// STEP 1 - handle quotes
+	tokens = process_quotes(str);
+	// Step 1a - Error out when unclosed quotes
+	if (check_error_process_quotes(tokens))
+	{
+		free_tokenlist(&tokens);
+		return (NULL);
+	}
+	// STEP 2 - SPLIT WORD BY SPACES
+	revisedtokens = retoken_word_after_expansion(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 3  - handle special operators | > >> < <<
+	revisedtokens = handle_redirection_pipe(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// Step 3a - check if redirection not next to each other
+	// 			check if pipe is not next to pipe
+	if (check_error_redirection_pipe(tokens))
+	{
+		free_tokenlist(&tokens);
+		return (NULL);
+	}
+	// Step 4 - 9 
+	parse_output = parse_input_helper(tokens, envp);
+	return (parse_output);
+}
+
+// parse_input_helper 
+// step 4 onwards
+t_token	**parse_input_helper(t_token *tokens, char **envp)
+{
+	t_token	*revisedtokens;
+	t_token	**parse_output;
+
+	// STEP 4 - join redirects with file to the right
+	revisedtokens = joinredirects(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 5 - handle shell vars
+	revisedtokens = handle_shellvars(envp, tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
+	revisedtokens = merge_stucktogether_words(tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	// STEP 8 - split command and args
+	parse_output = split_by_pipe(tokens);
+	free_tokenlist(&tokens);
+	// STEP 9 - label commands and args
+	label_commands_args(parse_output);
+	return (parse_output);
+}
+
 /*
 // cc parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c ../Libft/libft.a -g
 int main(int argc, char **argv, char **envp)
@@ -413,9 +504,11 @@ int main(int argc, char **argv, char **envp)
 	str = ft_calloc(100, sizeof(char));
 	// ft_strlcpy(str, "echo 'hello'  $USER   123\"asd\" | cat >file2 >> file3", 100);
 	// ft_strlcpy(str, "echo 'hello world'    file.txt | \"adsasd\"boss'a'", 100);
-	ft_strlcpy(str, "cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL$USER\" '$LANGUAGE'>", 100);
+	// ft_strlcpy(str, "cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL$USER\" '$LANGUAGE'>", 100);
 	// ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'$USER \"$SHELL\" 'sd' $PWD", 100);
-	// ft_strlcpy(str, "", 100);
+	ft_strlcpy(str, "cat file1> fil'2'.t\"x\"t", 100);
+	// ft_strlcpy(str, "echo 'file1'\"ads\"'asd'", 100);
+	// ft_strlcpy(str, "echo test \"$SHELL$USER\" $PWD \"$USER $SHLVL\" hello ", 100);
 	
 	printf("Command: ^%s\n", str);
 
@@ -429,15 +522,15 @@ int main(int argc, char **argv, char **envp)
 		free_tokenlist(&tokens);
 		return (1);
 	}
-	// STEP 5 - SPLIT WORD BY SPACES
+	// STEP 2 - SPLIT WORD BY SPACES
 	revisedtokens = retoken_word_after_expansion(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 2  - handle special operators | > >> < <<
+	// STEP 3  - handle special operators | > >> < <<
 	revisedtokens = handle_redirection_pipe(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// Step 2a - check if redirection not next to each other
+	// Step 3a - check if redirection not next to each other
 	// 			check if pipe is not next to pipe
 	if (check_error_redirection_pipe(tokens))
 	{	
@@ -445,22 +538,23 @@ int main(int argc, char **argv, char **envp)
 		free_tokenlist(&tokens);
 		return (1);
 	}
-	// STEP 3 - join redirects with file to the right
+	// STEP 4 - join redirects with file to the right
 	revisedtokens = joinredirects(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 4 - handle shell vars
+	// STEP 5 - handle shell vars
 	revisedtokens = handle_shellvars(envpc, tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
+	print_tokenlist(tokens);
 	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
 	revisedtokens = merge_stucktogether_words(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 7 - split command and args
+	// STEP 8 - split command and args
 	parse_output = split_by_pipe(tokens);
 	free_tokenlist(&tokens);
-	// STEP 8 - label commands and args
+	// STEP 9 - label commands and args
 	label_commands_args(parse_output);
 	int i = 0;
 	while (parse_output[i] != NULL)

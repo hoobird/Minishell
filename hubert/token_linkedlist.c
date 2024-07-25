@@ -1,5 +1,4 @@
 #include "minishell.h"
-#include "parsing.h"
 
 // initialise the token list (linked list) with first token
 t_token	*init_tokenlist(char *word, t_tokentype type, int spacesafter)
@@ -234,6 +233,17 @@ void	print_tokenlist(t_token *token)
 	{
 		printf("Token %d: ^%s^ [type: %s] [spacesafter: %d]\n", i, token->string, get_tokentype(token->type), token->postspace);
 		token = token->next;
+		i++;
+	}
+}
+
+void	print_tokenlistlist(t_token **tokenlist)
+{
+	int i = 0;
+	while (tokenlist[i] != NULL)
+	{
+		printf("Command: %d\n", i);
+		print_tokenlist(tokenlist[i]);
 		i++;
 	}
 }

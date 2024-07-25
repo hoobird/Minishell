@@ -1,5 +1,5 @@
-// # include "minishell.h"
-#include "../includes/minishell.h"
+# include "minishell.h"
+// #include "../includes/minishell.h"
 
 char **tokenise(char *buf);
 char **add_to_strarr(char **oldtokenarr, char *token);

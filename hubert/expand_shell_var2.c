@@ -1,6 +1,4 @@
 # include "minishell.h"
-# include "builtin.h"
-
 
 int	check_envvar_delimiter(char *start)
 {

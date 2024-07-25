@@ -1,5 +1,4 @@
 # include "minishell.h"
-# include "builtin.h"
 
 // copies the envp array of strings
 // takes in original envp

@@ -1,4 +1,4 @@
-#include "../includes/minishell.h"
+#include "minishell.h"
 
 // Test case 
 char **commands[4] = {
@@ -50,9 +50,17 @@ int execute(char ***cmds)
                 dup2(pipelist[cmdindex - 1][0], 0); // redirect stdin to previous pipe read
                 dup2(pipelist[cmdindex][1], 1); // redirect stdout to current pipe write
             }
+            // close all pipes
+            int i = 0;
+            while (pipelist[i])
+            {
+                close(pipelist[i][0]);
+                close(pipelist[i][1]);
+                i++;
+            }
             printf("Executing%d %s\n",cmdindex, cmds[cmdindex][0]);
             execve(ft_strjoin("/bin/", cmds[cmdindex][0]), cmds[cmdindex], NULL);
-            exit(1);
+            exit(127);
         }
         // parent process
         printf("Parent process %d\n", cmdindex);
@@ -84,7 +92,7 @@ void    printpipelist(int **pipelist)
         i++;
     }
 }
-
+// cc execute.c ../Libft/libft.a
 int main()
 {
     // int **pipelist;

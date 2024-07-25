@@ -8,7 +8,8 @@ int main(void)
 {
 	const char	*content = 
 //		"echo 'hello world' abc"; // expect: hello world abc (3 tokens)
-		"cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL@$USER\" '$LANGUAGE'"; //  something before and after '='
+		// "cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL@$USER\" '$LANGUAGE'"; //  something before and after '='
+		"cat file1> fil'2'.t\"x\"t";
 
 /*
 handle '', replace with enclosed, less quotes
