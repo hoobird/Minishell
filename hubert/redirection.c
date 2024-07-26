@@ -21,25 +21,23 @@
 # include "minishell.h"
 
 // redirection <
-int	redirect_input(int fd2)
+int	redirect_input(int fdRead,int fd2)
 {
-	if (dup2(fd2, STDIN_FILENO) == -1)//redirect file to stdin
+	if (dup2(fd2, fdRead) == -1)//redirect file to stdin
 		printerror("redirect to stdin failed");
 	close(fd2);
 }
 
 // redirection > and >>
-int	redirect_output(int fd1, int fd2)
+int	redirect_output(int fdWrite, int fd2)
 {
-	if (dup2(fd1, STDIN_FILENO) == -1)
-		printerror("redirect to stdIN failed");
-	if (dup2(fd2, STDOUT_FILENO) == -1)
+	if (dup2(fd2, fdWrite) == -1)
 		printerror("redirect to stdOUT failed");
 }
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-int	redirect_heredoc(char *eof)
+int	redirect_heredoc(char *eof, int fdRead)
 {
 	char 	*line;
 	int		pipes[2];
@@ -58,8 +56,22 @@ int	redirect_heredoc(char *eof)
 	}
 	free(line);
 	close(pipes[1]);
-	dup2(pipes[0], STDIN_FILENO);
+	dup2(pipes[0], fdRead);
 	close(pipes[0]);
+}
+
+// check for read / write permissions
+// possible mode are R_OK, W_OK, X_OK
+// return 0 if permission denied
+// return 1 if permission granted
+int	check_file_permissions(char *filename, int mode)
+{
+	if (access(filename, mode) == -1)
+	{
+		printerror("minishell: %s: Permission denied\n");
+		return (0);
+	}
+	return (1);
 }
 
 // redirection >  be 41
@@ -69,50 +81,71 @@ int	redirect_heredoc(char *eof)
 // ---     ---     ---
 // rwx     rwx     rwx
 // user    group   other 
-int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
-{
-	int	fd1;
-	int	fd2;
 
-	if (tnum == 41) // Read left, write right
-	{
-		fd1 = STDIN_FILENO;
-		if (fileleft)
-			fd1 = open(fileleft, O_RDONLY);
-		if (fileright)
-			fd2 = open(fileright, O_WRONLY | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
-		if (fd1 < 0 || fd2 < 0)
-			return(printerror("redirection > : file open() failed\n"));
-		redirect_output(fd1, fd2);
-		if (fd1 != STDIN_FILENO)
-			close(fd1);
-	}
-	else if (tnum == 42)
-	{
-		fd1 = STDIN_FILENO;
-		if (fileleft)
-			fd1 = open(fileleft, O_RDONLY);
-		if (fileright)
-			fd2 = open(fileright, O_WRONLY | O_APPEND | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
-		if (fd1 < 0 || fd2 < 0)
-			return(printerror("redirection >> : file open() failed\n"));
-		redirect_output(fd1, fd2);
-		if (fd1 != STDIN_FILENO)
-			close(fd1);
-	}
-	else if (tnum == 43)
-	{
-			fd2 = open(fileright, O_RDONLY);
-			if (fd2 < 0)
-				return(printerror("redirection < : file open() failed\n"));
-			redirect_input(fd2);
-	}
-	else if (tnum == 44)
-	{
-		// in this case, fileright is not a file but the delimiter
-		redirect_heredoc(fileright);
-	}
-}
+// // perfrom redirections as per token type
+// void	perform_redirection(t_command_args **command_args)
+// {
+// 	int	i;
+// 	t_token	*tokens;
+// 	int	result;
+
+// 	i = 0;
+// 	while (command_args[i])
+// 	{
+// 		while (tokens)
+// 		i++;
+// 	}
+	
+// }
+
+
+
+// Old test cases etc
+
+// int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
+// {
+// 	int	fd1;
+// 	int	fd2;
+
+// 	if (tnum == 41) // Read left, write right
+// 	{
+// 		fd1 = STDIN_FILENO;
+// 		if (fileleft)
+// 			fd1 = open(fileleft, O_RDONLY);
+// 		if (fileright)
+// 			fd2 = open(fileright, O_WRONLY | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
+// 		if (fd1 < 0 || fd2 < 0)
+// 			return(printerror("redirection > : file open() failed\n"));
+// 		redirect_output(fd1, fd2);
+// 		if (fd1 != STDIN_FILENO)
+// 			close(fd1);
+// 	}
+// 	else if (tnum == 42)
+// 	{
+// 		fd1 = STDIN_FILENO;
+// 		if (fileleft)
+// 			fd1 = open(fileleft, O_RDONLY);
+// 		if (fileright)
+// 			fd2 = open(fileright, O_WRONLY | O_APPEND | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
+// 		if (fd1 < 0 || fd2 < 0)
+// 			return(printerror("redirection >> : file open() failed\n"));
+// 		redirect_output(fd1, fd2);
+// 		if (fd1 != STDIN_FILENO)
+// 			close(fd1);
+// 	}
+// 	else if (tnum == 43)
+// 	{
+// 			fd2 = open(fileright, O_RDONLY);
+// 			if (fd2 < 0)
+// 				return(printerror("redirection < : file open() failed\n"));
+// 			redirect_input(fd2);
+// 	}
+// 	else if (tnum == 44)
+// 	{
+// 		// in this case, fileright is not a file but the delimiter
+// 		redirect_heredoc(fileright);
+// 	}
+// }
 
 // // rest redirect <
 // int main()
@@ -128,10 +161,7 @@ int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
 // 	return (0);
 // }
 
-// // rest redirect >> and >
-
-void	redirection
-
+// rest redirect >> and >
 int main()
 {
 	char *filename = "./test/file1.txt";
@@ -142,7 +172,7 @@ int main()
 
 	redirection(tnum, filename, filename2);
 	redirection(tnum, filename2, filename3);
-	if (fork() == 0)
-		execve("/bin/cat", arg, NULL);
+	// if (fork() == 0)
+	// 	execve("/bin/cat", arg, NULL);
 	return (0);
 }

@@ -43,11 +43,14 @@ void check_then_add_token(t_token **token, char *word, t_tokentype type, int spa
 {
 	int 		i;
 
-	if (ft_strlen(word) == 0) // check if string is empty, cuz dont want to add empty string
+	if (type != WORD)
 	{
-		free(word);
+		if (*token == NULL)
+			*token = init_tokenlist(word, type, spaces);
+		else
+			add_token(*token, word, type, spaces);
 		return ;
-	}
+	} 
 	i = 0;
 	while (word[i])
 	{
@@ -165,12 +168,14 @@ t_token	*handle_redirection_pipe(t_token *token)
 					type = check_redirection_pipe_type(&(token->string[i]));
 					if (type == RE_APPEND || type == RE_HEREDOC)
 					{
-						check_then_add_token(&revisedtoken, ft_substr(token->string, i, 2), type, 0); // no need to check space
+						// check_then_add_token(&revisedtoken, ft_substr(token->string, i, 2), type, 0); // not gonna add symbol to string
+						check_then_add_token(&revisedtoken, ft_strdup(""), type, 0);
 						i += 2;
 					}
 					else
 					{
-						check_then_add_token(&revisedtoken, ft_substr(token->string, i, 1), type, 0); // no need to check space
+						// check_then_add_token(&revisedtoken, ft_substr(token->string, i, 1), type, 0); // not gonna add symbol to string
+						check_then_add_token(&revisedtoken, ft_strdup(""), type, 0);
 						i++;
 					}
 					start = i;
@@ -451,6 +456,7 @@ t_token	**parse_input(char *str, char **envp)
 	revisedtokens = handle_redirection_pipe(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
+	// print_tokenlist(tokens);
 	// Step 3a - check if redirection not next to each other
 	// 			check if pipe is not next to pipe
 	if (check_error_redirection_pipe(tokens))

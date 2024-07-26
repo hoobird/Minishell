@@ -43,13 +43,13 @@ int main(int argc, char *argv[], char *envp[])
 			// printf("Error: parsing failed\n");
 			continue ;
 		}
-		print_tokenlistlist(tokenlistlist);
-		printf("\n");
+		// print_tokenlistlist(tokenlistlist);
+		// printf("\n");
 		// next is to create pipes and upgrade t_token ** to t_command_args *
 		command_args_list = upgrade_struct_generate_pipes(tokenlistlist);
 		free(tokenlistlist);
 		freecommandlist(&command_args_list);
-		// printpipelist(command_life_cycle.pipefd);
+
 		// then handle redirections
 
 		// then execution
