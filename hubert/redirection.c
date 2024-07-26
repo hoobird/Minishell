@@ -20,15 +20,6 @@
 
 # include "minishell.h"
 
-typedef enum	e_tokentype
-{
-	command = 1,
-	re_output = 41,	// redirection >  be 41
-	re_append = 42,	// redirection >> be 42
-	re_input = 43,	// redirection <  be 43
-	re_heredoc = 44	// redirection << be 44
-}				t_tokentype;
-
 // redirection <
 int	redirect_input(int fd2)
 {
@@ -78,7 +69,7 @@ int	redirect_heredoc(char *eof)
 // ---     ---     ---
 // rwx     rwx     rwx
 // user    group   other 
-int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
+int	redirection(t_tokentype tnum, int fdlleft, char *fileright)  // left has be be fd cuz its either the pipe read/write or stdin/out
 {
 	int	fd1;
 	int	fd2;
@@ -123,32 +114,32 @@ int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
 	}
 }
 
-// rest redirect <
-int main()
-{
-	// char *filename = "testfile.txt";
-	char *arg[3] = {"cat", NULL, NULL};
-	t_tokentype tnum = 44;
-
-	redirection(tnum, NULL, "eof");
-	if (fork() == 0)
-		execve("/bin/cat", arg, NULL);
-	waitpid(-1, NULL, 0);
-	return (0);
-}
-
-// // rest redirect >> and >
+// // rest redirect <
 // int main()
 // {
-// 	char *filename = "testfile.txt";
-// 	char *filename2 = "testfile2.txt";
-// 	char *filename3 = "testfile3.txt";
-// 	char *arg[3] = {"cat", filename, NULL};
-// 	t_tokentype tnum = 42;
+// 	// char *filename = "testfile.txt";
+// 	char *arg[3] = {"cat", NULL, NULL};
+// 	t_tokentype tnum = 44;
 
-// 	redirection(tnum, filename, filename2);
-// 	redirection(tnum, filename2, filename3);
+// 	redirection(tnum, NULL, "eof");
 // 	if (fork() == 0)
 // 		execve("/bin/cat", arg, NULL);
+// 	waitpid(-1, NULL, 0);
 // 	return (0);
 // }
+
+// rest redirect >> and >
+int main()
+{
+	char *filename = "testfile.txt";
+	char *filename2 = "testfile2.txt";
+	char *filename3 = "testfile3.txt";
+	char *arg[3] = {"cat", filename, NULL};
+	t_tokentype tnum = 42;
+
+	redirection(tnum, filename, filename2);
+	redirection(tnum, filename2, filename3);
+	if (fork() == 0)
+		execve("/bin/cat", arg, NULL);
+	return (0);
+}

@@ -10,6 +10,10 @@ void    printpipelist(int **pipelist)
         printf("Pipe %d: %d %d\n", i, pipelist[i][0], pipelist[i][1]);
         i++;
     }
+    if (i == 0)
+    {
+        printf("No pipes generated\n");
+    }
 }
 
 int **generatepipes(int n)
