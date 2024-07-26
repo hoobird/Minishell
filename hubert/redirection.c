@@ -69,7 +69,7 @@ int	redirect_heredoc(char *eof)
 // ---     ---     ---
 // rwx     rwx     rwx
 // user    group   other 
-int	redirection(t_tokentype tnum, int fdlleft, char *fileright)  // left has be be fd cuz its either the pipe read/write or stdin/out
+int	redirection(t_tokentype tnum, char *fileleft, char *fileright)
 {
 	int	fd1;
 	int	fd2;
@@ -128,14 +128,17 @@ int	redirection(t_tokentype tnum, int fdlleft, char *fileright)  // left has be 
 // 	return (0);
 // }
 
-// rest redirect >> and >
+// // rest redirect >> and >
+
+void	redirection
+
 int main()
 {
-	char *filename = "testfile.txt";
-	char *filename2 = "testfile2.txt";
-	char *filename3 = "testfile3.txt";
+	char *filename = "./test/file1.txt";
+	char *filename2 = "./test/file3.txt";
+	char *filename3 = "./test/file2.txt";
 	char *arg[3] = {"cat", filename, NULL};
-	t_tokentype tnum = 42;
+	t_tokentype tnum = 41;
 
 	redirection(tnum, filename, filename2);
 	redirection(tnum, filename2, filename3);
