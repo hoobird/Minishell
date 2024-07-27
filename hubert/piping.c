@@ -27,6 +27,7 @@ void    printcommandlist(t_command_args **command_arg_list)
         print_tokenlist(command_arg_list[i]->tokenlist);
         printf("readfd: %d\n", command_arg_list[i]->readfd);
         printf("writefd: %d\n", command_arg_list[i]->writefd);
+        printf("cancelexec: %d\n", command_arg_list[i]->cancelexec);
         i++;
     }
     if (i == 0)
@@ -57,6 +58,7 @@ t_command_args  **upgrade_struct_to_list(t_token **tokenlistlist)
         output[i]->tokenlist = tokenlistlist[i];
         output[i]->readfd = STDIN_FILENO;
         output[i]->writefd = STDOUT_FILENO;
+        output[i]->cancelexec = 0;
         i++;
     }
     return (output);
@@ -111,7 +113,6 @@ t_command_args	**upgrade_struct_generate_pipes(t_token **tokenlistlist)
     no_pipes = tokenlistlist_len(tokenlistlist) - 1;
     if (no_pipes > 0)
         generate_pipes(output, no_pipes);
-    printcommandlist(output);
     return (output);
 }
 

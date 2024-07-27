@@ -33,6 +33,7 @@ int	redirect_output(int fdWrite, int fd2)
 {
 	if (dup2(fd2, fdWrite) == -1)
 		printerror("redirect to stdOUT failed");
+	close(fd2);
 }
 
 // HEREDOC <<
@@ -61,14 +62,21 @@ int	redirect_heredoc(char *eof, int fdRead)
 }
 
 // check for read / write permissions
-// possible mode are R_OK, W_OK, X_OK
+// possible mode are R_OK, W_OK, X_OK, F_OK
+// R_OK - check for read permission
+// W_OK - check for write permission
+// X_OK - check for execute permission (DONT NEED THIS FOR NOW)
+// F_OK - check for file existence (DONT NEED THIS FOR NOW)
 // return 0 if permission denied
 // return 1 if permission granted
 int	check_file_permissions(char *filename, int mode)
 {
 	if (access(filename, mode) == -1)
 	{
-		printerror("minishell: %s: Permission denied\n");
+		if (mode == R_OK)
+			printerror("minishell: %s: No such file or directory\n");
+		else if (mode == W_OK)
+			printerror("minishell: %s: Permission denied\n");
 		return (0);
 	}
 	return (1);
@@ -82,21 +90,48 @@ int	check_file_permissions(char *filename, int mode)
 // rwx     rwx     rwx
 // user    group   other 
 
-// // perfrom redirections as per token type
-// void	perform_redirection(t_command_args **command_args)
-// {
-// 	int	i;
-// 	t_token	*tokens;
-// 	int	result;
+// perfrom redirections as per token type
+void	perform_redirection(t_command_args **command_args)
+{
+	int	i;
+	t_token	*tokens;
+	int	result;
 
-// 	i = 0;
-// 	while (command_args[i])
-// 	{
-// 		while (tokens)
-// 		i++;
-// 	}
-	
-// }
+	i = 0;
+	while (command_args[i])
+	{
+		tokens = command_args[i]->tokenlist;
+		while (tokens)
+		{
+			// check permission first
+			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND) // > and >> need write permission
+				result = check_file_permissions(tokens->string, W_OK);
+			else if (tokens->type == RE_INPUT) // < need read permission
+				result = check_file_permissions(tokens->string, R_OK);
+			else
+			{
+				tokens = tokens->next;
+				continue ;
+			}
+			if (result == 0) // permission denied
+			{
+				command_args[i]->cancelexec = 1; // cancel execution once redirection fails
+				break ;
+			}
+			// perform redirection
+			if (tokens->type == RE_OUTPUT)
+				redirect_output(command_args[i]->writefd, open(tokens->string, O_WRONLY | O_CREAT, 0644));
+			else if (tokens->type == RE_APPEND)
+				redirect_output(command_args[i]->writefd, open(tokens->string, O_WRONLY | O_APPEND | O_CREAT, 0644));
+			else if (tokens->type == RE_INPUT)
+				redirect_input(command_args[i]->readfd, open(tokens->string, O_RDONLY));
+			else if (tokens->type == RE_HEREDOC)
+				redirect_heredoc(tokens->string, command_args[i]->readfd);
+			tokens = tokens->next;	
+		}
+		i++;
+	}
+}
 
 
 
@@ -161,18 +196,18 @@ int	check_file_permissions(char *filename, int mode)
 // 	return (0);
 // }
 
-// rest redirect >> and >
-int main()
-{
-	char *filename = "./test/file1.txt";
-	char *filename2 = "./test/file3.txt";
-	char *filename3 = "./test/file2.txt";
-	char *arg[3] = {"cat", filename, NULL};
-	t_tokentype tnum = 41;
+// // rest redirect >> and >
+// int main()
+// {
+// 	char *filename = "./test/file1.txt";
+// 	char *filename2 = "./test/file3.txt";
+// 	char *filename3 = "./test/file2.txt";
+// 	char *arg[3] = {"cat", filename, NULL};
+// 	t_tokentype tnum = 41;
 
-	redirection(tnum, filename, filename2);
-	redirection(tnum, filename2, filename3);
-	// if (fork() == 0)
-	// 	execve("/bin/cat", arg, NULL);
-	return (0);
-}
+// 	redirection(tnum, filename, filename2);
+// 	redirection(tnum, filename2, filename3);
+// 	// if (fork() == 0)
+// 	// 	execve("/bin/cat", arg, NULL);
+// 	return (0);
+// }

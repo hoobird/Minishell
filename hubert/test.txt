@@ -1,3 +1,4 @@
+Executing 0
 #include "minishell.h"
 
 void	freecommandlist(t_command_args ***command_args_list)
@@ -60,3 +61,9 @@ int main(int argc, char *argv[], char *envp[])
 	}
 	return (0);
 }
+Waiting for child process
+[?2004hminishell>> 
+a.out                builtin_echo.c       execute.c            libft.h              parsing.c            printerror.c         test.txt             
+builtin.h            builtin_env.c        expand_shell_var2.c  main.c               parsing.h            redirection.c        token_linkedlist.c   
+builtin_cd_pwd.c     example.txt          learn/               minishell.h          piping.c             test/                
+minishell>> ^C[?2004l

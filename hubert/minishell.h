@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/27 04:04:22 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/27 17:54:49 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,10 +60,20 @@ typedef struct	s_command_args
 	t_token	*tokenlist;
 	int		readfd;
 	int		writefd;
+	int		cancelexec;
 }			t_command_args;
 
 // piping.c
 void    		printpipelist(int **pipelist);
 t_command_args	**upgrade_struct_generate_pipes(t_token **tokenlistlist);
+void    printcommandlist(t_command_args **command_arg_list);
+
+
+// redirection.c
+void	perform_redirection(t_command_args **command_args);
+
+// execute.c
+void	execution(t_command_args **command_args, char **envpc);
+	
 
 # endif
