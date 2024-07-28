@@ -48,12 +48,23 @@ void	execution(t_command_args **command_args, char **envpc)
 			continue ;
 		}
 		command_args_string = command_args_extraction(command_args[i]->tokenlist);
-		if (fork() == 0)
+		if (fork() == 0) // child process
 		{
 			if (command_args[i]->writefd != STDOUT_FILENO)
 				dup2(command_args[i]->writefd, STDOUT_FILENO);
 			if (command_args[i]->readfd != STDIN_FILENO)
 				dup2(command_args[i ]->readfd, STDIN_FILENO);
+			// close all pipes
+			i = 0;
+			while (command_args[i])
+			{
+				if (command_args[i + 1] != NULL)
+					close(command_args[i]->writefd);
+				if (i != 0)
+					close(command_args[i]->readfd);
+				i++;
+			}
+			// execute command
 			execve(ft_strjoin("/bin/", command_args_string[0]), command_args_string, envpc);
 			printerror("minishell: command not found\n");
 			exit(127);
