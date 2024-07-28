@@ -61,8 +61,7 @@ int main(int argc, char *argv[], char *envp[])
 	}
 	return (0);
 }
-Waiting for child process
-[?2004hminishell>> 
+[?2004hminishell>> ^C[?2004l04hminishell>> 
 a.out                builtin_echo.c       execute.c            libft.h              parsing.c            printerror.c         test.txt             
 builtin.h            builtin_env.c        expand_shell_var2.c  main.c               parsing.h            redirection.c        token_linkedlist.c   
 builtin_cd_pwd.c     example.txt          learn/               minishell.h          piping.c             test/                

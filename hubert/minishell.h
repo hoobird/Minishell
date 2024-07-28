@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/27 17:54:49 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/28 14:54:12 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,8 @@
 // For signal, sigaction, sigemptyset, sigaddset, kill
 #include <signal.h>       
 // For stat, lstat, fstat
-#include <sys/stat.h>     
-// For opendir, readdir, closedir
+#include <sys/stat.h>
+// For mask values stat's st_mode to check file type (directory, regular file, etc)
 #include <dirent.h>       
 // For strerror
 #include <string.h>       
@@ -68,12 +68,15 @@ void    		printpipelist(int **pipelist);
 t_command_args	**upgrade_struct_generate_pipes(t_token **tokenlistlist);
 void    printcommandlist(t_command_args **command_arg_list);
 
-
 // redirection.c
 void	perform_redirection(t_command_args **command_args);
 
 // execute.c
 void	execution(t_command_args **command_args, char **envpc);
+
+// check_file_permissions.c
+int	check_file_type(char *path);
+int	check_file_permissions(char *filename, int mode);
 	
 
 # endif

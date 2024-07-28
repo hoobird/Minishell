@@ -21,7 +21,7 @@
 # include "minishell.h"
 
 // redirection <
-int	redirect_input(int fdRead,int fd2)
+void	redirect_input(int fdRead,int fd2)
 {
 	if (dup2(fd2, fdRead) == -1)//redirect file to stdin
 		printerror("redirect to stdin failed");
@@ -29,7 +29,7 @@ int	redirect_input(int fdRead,int fd2)
 }
 
 // redirection > and >>
-int	redirect_output(int fdWrite, int fd2)
+void	redirect_output(int fdWrite, int fd2)
 {
 	if (dup2(fd2, fdWrite) == -1)
 		printerror("redirect to stdOUT failed");
@@ -38,7 +38,7 @@ int	redirect_output(int fdWrite, int fd2)
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-int	redirect_heredoc(char *eof, int fdRead)
+void	redirect_heredoc(char *eof, int fdRead)
 {
 	char 	*line;
 	int		pipes[2];
@@ -61,27 +61,6 @@ int	redirect_heredoc(char *eof, int fdRead)
 	close(pipes[0]);
 }
 
-// check for read / write permissions
-// possible mode are R_OK, W_OK, X_OK, F_OK
-// R_OK - check for read permission
-// W_OK - check for write permission
-// X_OK - check for execute permission (DONT NEED THIS FOR NOW)
-// F_OK - check for file existence (DONT NEED THIS FOR NOW)
-// return 0 if permission denied
-// return 1 if permission granted
-int	check_file_permissions(char *filename, int mode)
-{
-	if (access(filename, mode) == -1)
-	{
-		if (mode == R_OK)
-			printerror("minishell: %s: No such file or directory\n");
-		else if (mode == W_OK)
-			printerror("minishell: %s: Permission denied\n");
-		return (0);
-	}
-	return (1);
-}
-
 // redirection >  be 41
 // redirection >> be 42
 // redirection <  be 43
@@ -98,6 +77,7 @@ void	perform_redirection(t_command_args **command_args)
 	int	result;
 
 	i = 0;
+	result = 1;
 	while (command_args[i])
 	{
 		tokens = command_args[i]->tokenlist;
@@ -108,7 +88,7 @@ void	perform_redirection(t_command_args **command_args)
 				result = check_file_permissions(tokens->string, W_OK);
 			else if (tokens->type == RE_INPUT) // < need read permission
 				result = check_file_permissions(tokens->string, R_OK);
-			else
+			else if (tokens->type != RE_HEREDOC) 
 			{
 				tokens = tokens->next;
 				continue ;
