@@ -22,7 +22,7 @@ int	check_file_type(char *path)
 // R_OK - check for read permission
 // W_OK - check for write permission
 // X_OK - check for execute permission (DONT NEED THIS FOR NOW)
-// F_OK - check for file existence (DONT NEED THIS FOR NOW)
+// F_OK - check for file existence
 // return 0 if permission denied
 // return 1 if permission granted
 int	check_file_permissions(char *filename, int mode)
@@ -30,9 +30,12 @@ int	check_file_permissions(char *filename, int mode)
 	if (access(filename, mode) == -1)
 	{
 		if (mode == R_OK)
-			printerror("minishell: %s: No such file or directory\n");
+			printerror("No such file or directory\n");
 		else if (mode == W_OK)
-			printerror("minishell: %s: Permission denied\n");
+			printerror("Permission denied\n");
+		// else if (mode == F_OK)
+		// 	printerror("No such file or directory\n");
+
 		return (0);
 	}
 	return (1);

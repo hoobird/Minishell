@@ -32,6 +32,20 @@ char	**command_args_extraction(t_token *tokens)
 	return (output);
 }
 
+void	free_command_args(t_command_args **command_args)
+{
+	int i;
+
+	i = 0;
+	while (command_args[i])
+	{
+		free_tokenlist(&command_args[i]->tokenlist);
+		free(command_args[i]);
+		i++;
+	}
+	free(command_args);
+}
+
 void	execution(t_command_args **command_args, char **envpc)
 {
 	int i;
@@ -40,13 +54,13 @@ void	execution(t_command_args **command_args, char **envpc)
 	i = 0;
 	while (command_args[i])
 	{
-		printf("Executing %d\n", i);
-		if (command_args[i]->cancelexec == 1)
-		{
-			printf("Skipping execution\n");
-			i++;
-			continue ;
-		}
+		// printf("Executing %d\n", i);
+		// if (command_args[i]->cancelexec == 1)
+		// {
+		// 	printf("Skipping execution\n");
+		// 	i++;
+		// 	continue ;
+		// }
 		command_args_string = command_args_extraction(command_args[i]->tokenlist);
 		if (fork() == 0) // child process
 		{
@@ -73,7 +87,8 @@ void	execution(t_command_args **command_args, char **envpc)
 		if (command_args[i + 1] != NULL)
 			close(command_args[i]->writefd);
 		if (i != 0)
-			close(command_args[i]->readfd);	
+			close(command_args[i]->readfd);
+		free(command_args_string);
 		i++;
 	}
 	while (waitpid(-1, NULL, 0) > 0)

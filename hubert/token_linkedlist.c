@@ -257,6 +257,8 @@ void	print_tokenlistlist(t_token **tokenlist)
 		print_tokenlist(tokenlist[i]);
 		i++;
 	}
+	if (i == 0)
+		printf("Token list list is empty\n");
 }
 
 // check if token list list is empty and frees it

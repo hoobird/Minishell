@@ -17,7 +17,7 @@ void	freecommandlist(t_command_args ***command_args_list)
 
 // cc main.c execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c check_file_status.c -lreadline ../Libft/libft.a -g
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp ./a.out
-// valgrind --track-fds=yes --trace-children=yes ./a.out 
+// valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp --track-fds=yes --trace-children=yes ./a.out 
 int main(int argc, char *argv[], char *envp[])
 {
 	(void)argc;
@@ -30,6 +30,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	while (1)
 	{
+		buffer = NULL;
 		buffer = readline(PROMPT);
 		if (!buffer)
 			break ;
@@ -38,6 +39,7 @@ int main(int argc, char *argv[], char *envp[])
 		envpc = envp_copy(envp); // later then move to the top cuz i need to check if memory leak is not from not freeing envpc
 		// parse input
 		tokenlistlist = parse_input(buffer, envpc);
+		// print_tokenlistlist(tokenlistlist);
 		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(tokenlistlist))
 		{
 			printf("Error: parsing failed\n");
@@ -48,7 +50,7 @@ int main(int argc, char *argv[], char *envp[])
 		// next is to create pipes and upgrade t_token ** to t_command_args *
 		command_args_list = upgrade_struct_generate_pipes(tokenlistlist);
 		free(tokenlistlist);
-
+		// printcommandlist(command_args_list);
 		// then handle redirections
 		perform_redirection(command_args_list);
 

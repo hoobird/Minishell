@@ -1,5 +1,5 @@
 // https://www.gnu.org/software/bash/manual/html_node/Redirections.html
-//The following symbolic constants are provided for mode:
+// The following symbolic constants are provided for mode:
 // S_IRWXU  00700 user (file owner) has read, write, and execute permission
 // S_IRUSR  00400 user has read permission
 // S_IWUSR  00200 user has write permission
@@ -18,29 +18,25 @@
 // S_ISGID  0002000 set-group-ID bit (see inode(7)).
 // S_ISVTX  0001000 sticky bit (see inode(7)).
 
-# include "minishell.h"
+#include "minishell.h"
 
 // redirection <
-void	redirect_input(int fdRead,int fd2)
+void	redirect_input(int *fdRead, int fd2)
 {
-	if (dup2(fd2, fdRead) == -1)//redirect file to stdin
-		printerror("redirect to stdin failed");
-	close(fd2);
+	*fdRead = fd2;
 }
 
 // redirection > and >>
-void	redirect_output(int fdWrite, int fd2)
+void	redirect_output(int *fdWrite, int fd2)
 {
-	if (dup2(fd2, fdWrite) == -1)
-		printerror("redirect to stdOUT failed");
-	close(fd2);
+	*fdWrite = fd2;
 }
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-void	redirect_heredoc(char *eof, int fdRead)
+void	redirect_heredoc(char *eof, int *fdRead)
 {
-	char 	*line;
+	char	*line;
 	int		pipes[2];
 
 	pipe(pipes);
@@ -56,9 +52,10 @@ void	redirect_heredoc(char *eof, int fdRead)
 		line = readline("> ");
 	}
 	free(line);
+	if (*fdRead != STDIN_FILENO)
+		close(*fdRead);
 	close(pipes[1]);
-	dup2(pipes[0], fdRead);
-	close(pipes[0]);
+	*fdRead = pipes[0];
 }
 
 // redirection >  be 41
@@ -67,14 +64,14 @@ void	redirect_heredoc(char *eof, int fdRead)
 // redirection << be 44
 // ---     ---     ---
 // rwx     rwx     rwx
-// user    group   other 
+// user    group   other
 
 // perfrom redirections as per token type
 void	perform_redirection(t_command_args **command_args)
 {
-	int	i;
+	int		i;
 	t_token	*tokens;
-	int	result;
+	int		result;
 
 	i = 0;
 	result = 1;
@@ -84,36 +81,45 @@ void	perform_redirection(t_command_args **command_args)
 		while (tokens)
 		{
 			// check permission first
-			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND) // > and >> need write permission
-				result = check_file_permissions(tokens->string, W_OK);
+			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND)
+				// > and >> need write permission
+			{
+				if (check_file_permissions(tokens->string, F_OK) == 1)
+					result = check_file_permissions(tokens->string, W_OK);
+			}
 			else if (tokens->type == RE_INPUT) // < need read permission
-				result = check_file_permissions(tokens->string, R_OK);
-			else if (tokens->type != RE_HEREDOC) 
+			{
+				if (check_file_permissions(tokens->string, F_OK) == 1)
+					result = check_file_permissions(tokens->string, R_OK);
+			}
+			else if (tokens->type != RE_HEREDOC)
 			{
 				tokens = tokens->next;
 				continue ;
 			}
 			if (result == 0) // permission denied
 			{
-				command_args[i]->cancelexec = 1; // cancel execution once redirection fails
+				command_args[i]->cancelexec = 1;
+					// cancel execution once redirection fails
 				break ;
 			}
 			// perform redirection
 			if (tokens->type == RE_OUTPUT)
-				redirect_output(command_args[i]->writefd, open(tokens->string, O_WRONLY | O_CREAT, 0644));
+				redirect_output(&(command_args[i]->writefd),
+					open(tokens->string, O_WRONLY | O_CREAT | O_TRUNC, 0644));
 			else if (tokens->type == RE_APPEND)
-				redirect_output(command_args[i]->writefd, open(tokens->string, O_WRONLY | O_APPEND | O_CREAT, 0644));
+				redirect_output(&(command_args[i]->writefd),
+					open(tokens->string, O_WRONLY | O_APPEND | O_CREAT, 0644));
 			else if (tokens->type == RE_INPUT)
-				redirect_input(command_args[i]->readfd, open(tokens->string, O_RDONLY));
+				redirect_input(&(command_args[i]->readfd), open(tokens->string,
+						O_RDONLY));
 			else if (tokens->type == RE_HEREDOC)
-				redirect_heredoc(tokens->string, command_args[i]->readfd);
-			tokens = tokens->next;	
+				redirect_heredoc(tokens->string, &(command_args[i]->readfd));
+			tokens = tokens->next;
 		}
 		i++;
 	}
 }
-
-
 
 // Old test cases etc
 
@@ -128,7 +134,8 @@ void	perform_redirection(t_command_args **command_args)
 // 		if (fileleft)
 // 			fd1 = open(fileleft, O_RDONLY);
 // 		if (fileright)
-// 			fd2 = open(fileright, O_WRONLY | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
+// 			fd2 = open(fileright, O_WRONLY | O_CREAT, 0644);
+				// if file dont exist, create with permission -rw-r--r--
 // 		if (fd1 < 0 || fd2 < 0)
 // 			return(printerror("redirection > : file open() failed\n"));
 // 		redirect_output(fd1, fd2);
@@ -141,7 +148,8 @@ void	perform_redirection(t_command_args **command_args)
 // 		if (fileleft)
 // 			fd1 = open(fileleft, O_RDONLY);
 // 		if (fileright)
-// 			fd2 = open(fileright, O_WRONLY | O_APPEND | O_CREAT, 0644); // if file dont exist, create with permission -rw-r--r--
+// 			fd2 = open(fileright, O_WRONLY | O_APPEND | O_CREAT, 0644);
+				// if file dont exist, create with permission -rw-r--r--
 // 		if (fd1 < 0 || fd2 < 0)
 // 			return(printerror("redirection >> : file open() failed\n"));
 // 		redirect_output(fd1, fd2);

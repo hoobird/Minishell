@@ -452,6 +452,7 @@ t_token	**parse_input(char *str, char **envp)
 	revisedtokens = retoken_word_after_expansion(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
+	// print_tokenlist(tokens);
 	// STEP 3  - handle special operators | > >> < <<
 	revisedtokens = handle_redirection_pipe(tokens);
 	free_tokenlist(&tokens);

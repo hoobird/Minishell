@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/28 21:44:35 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/29 22:38:31 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@
 #include <readline/readline.h> 
 // For add_history
 #include <readline/history.h> 
-
 // For libft
 #include "libft.h"
 // For parsing
@@ -73,6 +72,7 @@ void	perform_redirection(t_command_args **command_args);
 
 // execute.c
 void	execution(t_command_args **command_args, char **envpc);
+void	free_command_args(t_command_args **command_args);
 
 // check_file_status.c
 int	check_file_type(char *path);
