@@ -56,18 +56,17 @@ void	builtin_cd(char **arg, char ***envpc)
 	
 	dst_dir = arg[0];
 	if (chdir(dst_dir) == 0)
-		return ;
-	/*
 	{
 		tmp = envpc_get_value(*envpc, "PWD");
 		envpc_add(envpc, "OLDPWD", tmp);
 		envpc_add(envpc, "PWD", dst_dir);
 	}
-	*/
+
 }
 
 int	main(int ac, char *av[], char **env)
 {
+	char	**envpc;
 	char	*test_abs;
 	char	*test_rel_minus_1;
 	char	*test_rel_plus_1;
@@ -77,64 +76,74 @@ int	main(int ac, char *av[], char **env)
 	char	*test_fail_3;
 	char	*root;
 	char	*oldpwd;
+	char	*no_arg;
+	
+	envpc = envp_copy(env);
 	
 	printf("bef:\n");
 	builtin_pwd(NULL, &env);
 	
-	test_abs = "/usr/games"; // absolute path
 	test_rel_minus_1 = "./learn"; // relative path, directory nested in current directory
 	test_rel_plus_1 = ".."; // relative path, one level up
-	test_rel_plus_2 = ".."; // relative path, TWO levels up
+	test_rel_plus_2 = "../.."; // relative path, TWO levels up
+	test_abs = "/usr/games"; // absolute path
 	test_fail_1 = "/etc/passwd"; // expect fail, because arg is file, not dir
 	test_fail_2 = ""; // empty pathname
-	test_fail_3 = "123helloworld"; // some random str
+	test_fail_3 = "123 hello world"; // some random str
 	root = "/";
 	oldpwd = envpc_get_value(env, "OLDPWD");
+	no_arg = NULL;
 
 // relative path, directory nested in current directory, ie. ONE level below current directory 
 	printf("\nchdir() w/ rel path, ONE level BELOW current directory:\n");
-	builtin_cd(&test_rel_minus_1, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_rel_minus_1, &envpc);
+	builtin_pwd(NULL, &envpc);
 
 // relative path, ONE level up
 	printf("\nchdir() w/ rel path, ONE level up:\n");
-	builtin_cd(&test_rel_plus_1, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_rel_plus_1, &envpc);
+	builtin_pwd(NULL, &envpc);
 	
 // relative path, TWO levels up
 	printf("\nchdir() w/ rel path, TWO levels up:\n");
-	builtin_cd(&test_rel_plus_2, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_rel_plus_2, &envpc);
+	builtin_pwd(NULL, &envpc);
 
 // abs path	
 	printf("\nchdir() w/ abs path:\n");
-	builtin_cd(&test_abs, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_abs, &envpc);
+	builtin_pwd(NULL, &envpc);
 
 // file as arg
 	printf("\nchdir() w/ an existing file as arg:\n");
-	builtin_cd(&test_fail_1, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_fail_1, &envpc);
+	builtin_pwd(NULL, &envpc);
 	
 // 	empty str as arg
 	printf("\nchdir() w/ empty str as arg:\n");
-	builtin_cd(&test_fail_2, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_fail_2, &envpc);
+	builtin_pwd(NULL, &envpc);
 	
 // some random str as arg
 	printf("\nchdir() w/ some random str as arg:\n");
-	builtin_cd(&test_fail_3, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&test_fail_3, &envpc);
+	builtin_pwd(NULL, &envpc);
 	
 // abs path, root
 	printf("\nchdir() to root:\n");
-	builtin_cd(&root, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&root, &envpc);
+	builtin_pwd(NULL, &envpc);
 	
 // abs path, $OLDPWD
 	printf("\nchdir() to OLDPWD, from env:\n");
-	builtin_cd(&oldpwd, &env);
-	builtin_pwd(NULL, &env);
+	builtin_cd(&oldpwd, &envpc);
+	builtin_pwd(NULL, &envpc);
+	
+// no arg
+	printf("\nchdir() with no arg, from env:\n");
+	builtin_cd(&no_arg, &envpc);
+	builtin_pwd(NULL, &envpc);
+		
 	
 	return (0);
 }
