@@ -113,7 +113,94 @@ int	check_command_type(char	**envpc, char **command_args)
 	return (check_executable(envpc, command_args));
 }
 
-void	execution(t_command_args **command_args, char **envpc)
+int		command_args_len(t_command_args **command_args)
+{
+	int	i = 0;
+
+	if (command_args)
+	{
+		while (command_args[i])
+			i++;
+	}
+	return (i);
+}
+
+void	run_builtin(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+{
+	int	outcome;
+
+	outcome = 0;
+	if (check_command_type(*envpc, command_args_string) == BUILTIN_ECHO)
+		outcome = builtin_echo(command_args_string);
+	else if (check_command_type(*envpc, command_args_string) == BUILTIN_CD)
+		printf("WIP: cd\n");
+	else if (check_command_type(*envpc, command_args_string) == BUILTIN_PWD)
+		printf("WIP: pwd\n");
+	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXPORT)
+		outcome = builtin_export(command_args_string, envpc);
+	else if (check_command_type(*envpc, command_args_string) == BUILTIN_UNSET)
+		outcome = builtin_unset(command_args_string, envpc);
+	else if (check_command_type(*envpc, command_args_string) == BUILTIN_ENV)
+		outcome = builtin_env(command_args_string, envpc);
+	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXIT)
+		builtin_exit_string(command_args_string);
+	envpc_add(envpc, "?", ft_itoa(outcome));
+}
+
+void	run_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+{
+	int	i;
+
+	if (fork == 0)
+	{
+		if (command_args[index]->writefd != STDOUT_FILENO)
+			dup2(command_args[index]->writefd, STDOUT_FILENO);
+		if (command_args[index]->readfd != STDIN_FILENO)
+			dup2(command_args[index]->readfd, STDIN_FILENO);
+		// close all pipes
+		i = 0;
+		while (command_args[i])
+		{
+			if (command_args[i + 1] != NULL)
+				close(command_args[i]->writefd);
+			if (i != 0)
+				close(command_args[i]->readfd);
+			i++;
+		}
+		// execute builtin
+		run_builtin(command_args, index, envpc, command_args_string);
+		builtin_exit(0);
+	}
+}
+
+void	execute_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+{
+	int	i;
+
+	if (fork == 0)
+	{
+		if (command_args[index]->writefd != STDOUT_FILENO)
+			dup2(command_args[index]->writefd, STDOUT_FILENO);
+		if (command_args[index]->readfd != STDIN_FILENO)
+			dup2(command_args[index]->readfd, STDIN_FILENO);
+		// close all pipes
+		i = 0;
+		while (command_args[i])
+		{
+			if (command_args[i + 1] != NULL)
+				close(command_args[i]->writefd);
+			if (i != 0)
+				close(command_args[i]->readfd);
+			i++;
+		}
+		// execute command
+		execve(command_args_string[0], command_args_string, *envpc);
+		printerror("minishell: command not found\n");
+		builtin_exit(127);
+	}
+}
+
+void	execution(t_command_args **command_args, char ***envpc)
 {
 	int i;
 	char	**command_args_string;
@@ -122,43 +209,17 @@ void	execution(t_command_args **command_args, char **envpc)
 	while (command_args[i])
 	{
 		command_args_string = command_args_extraction(command_args[i]->tokenlist);
-		if (check_command_type(envpc, command_args_string) == NOT_FOUND)
-		{
-			free(command_args_string);
-			i++;
-			continue;
-		}
-		else if (check_command_type(envpc, command_args_string)  < 98)// builtin
+		if (check_command_type(*envpc, command_args_string)  < 98)// builtin
 		{
 			// execute builtin
+			if (command_args_len(command_args) == 1) // no pipes so run in parent
+				run_builtin(command_args, i, envpc, command_args_string);
+			else // pipes avail then run in child
+				run_in_child(command_args, i, envpc, command_args_string);
 		}
-		else // executable
-		{
-			// execute executable
-		}
-
-		if (fork() == 0) // child process
-		{
-			if (command_args[i]->writefd != STDOUT_FILENO)
-				dup2(command_args[i]->writefd, STDOUT_FILENO);
-			if (command_args[i]->readfd != STDIN_FILENO)
-				dup2(command_args[i ]->readfd, STDIN_FILENO);
-			// close all pipes
-			i = 0;
-			while (command_args[i])
-			{
-				if (command_args[i + 1] != NULL)
-					close(command_args[i]->writefd);
-				if (i != 0)
-					close(command_args[i]->readfd);
-				i++;
-			}
-			// execute command
-			execve(ft_strjoin("/bin/", command_args_string[0]), command_args_string, envpc);
-			printerror("minishell: command not found\n");
-			ft_exit(127);
-		}
-		// parent process
+		else  if (check_command_type(*envpc, command_args_string) == EXECUTABLE)// executable
+			execute_in_child(command_args, i, envpc, command_args_string);
+		// close all the pipes used
 		if (command_args[i + 1] != NULL)
 			close(command_args[i]->writefd);
 		if (i != 0)

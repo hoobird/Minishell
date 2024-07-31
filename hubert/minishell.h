@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/31 22:40:19 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/31 23:37:46 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void    printcommandlist(t_command_args **command_arg_list);
 void	perform_redirection(t_command_args **command_args);
 
 // execute.c
-void	execution(t_command_args **command_args, char **envpc);
+void	execution(t_command_args **command_args, char ***envpc);
 void	free_command_args(t_command_args **command_args);
 
 // check_file_status.c

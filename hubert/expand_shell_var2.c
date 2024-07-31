@@ -12,7 +12,6 @@ int	check_envvar_delimiter(char *start)
 	while (start[i] && (ft_isalnum(start[i]) || start[i] == '_'))
 		i++;
 	return (i);
-
 }
 
 char	*shell_expand_append(char **envp, char **str, char *input, int len)

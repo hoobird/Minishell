@@ -15,7 +15,7 @@ void	freecommandlist(t_command_args ***command_args_list)
 	*command_args_list = NULL;
 }
 
-// cc main.c execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c check_file_status.c -lreadline ../Libft/libft.a -g
+// cc main.c builtin_echo.c builtin_exit.c  execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c check_file_status.c -lreadline ../Libft/libft.a -g
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp ./a.out
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp --track-fds=yes --trace-children=yes ./a.out 
 int main(int argc, char *argv[], char *envp[])
@@ -29,7 +29,6 @@ int main(int argc, char *argv[], char *envp[])
 	t_command_args			**command_args_list;
 
 	envpc = envp_copy(envp); // later then move to the top cuz i need to check if memory leak is not from not freeing envpc
-	envpc_print(envpc);
 	while (1)
 	{
 		buffer = NULL;
@@ -56,7 +55,7 @@ int main(int argc, char *argv[], char *envp[])
 		perform_redirection(command_args_list);
 
 		// then execution
-		execution(command_args_list, envpc);
+		execution(command_args_list, &envpc);
 
 		freecommandlist(&command_args_list);
 		free(buffer);

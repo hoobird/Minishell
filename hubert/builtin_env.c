@@ -36,6 +36,8 @@ char	*envpc_combine_key_value(char *key, char *value)
 	char	*combined;
 
 	temp = ft_strjoin(key, "=");
+	if (value == NULL)
+		value = "";
 	combined = ft_strjoin(temp, value);
 	free(temp);
 	return (combined);
@@ -169,6 +171,118 @@ void	envpc_print(char **envpc)
 		printf("%s\n", envpc[i]);
 		i++;
 	}
+}
+
+static int	args_length(char **args)
+{
+	int	i;
+
+	i = 0;
+	while (args[i])
+		i++;
+	return (i);
+}
+
+int	check_if_key_legit(char *key)
+{
+	int	i;
+
+	if (key[0] && !(ft_isalpha(key[0]) || key[0] == '_'))
+		return (0);
+	i = 1;
+	while (key[i] && (ft_isalnum(key[i]) || key[i] == '_'))
+		i++;
+	return (i);
+}
+
+void	freekeyvalue(char ***key_value)
+{
+	free((*key_value)[0]);
+	free((*key_value)[1]);
+	free(*key_value);
+}
+
+int	try_add_envvar(char *kvpair, char ***envpc)
+{
+	char	**key_value;
+
+	if (ft_strchr(kvpair, '=') == NULL)
+	{
+		printerror("export: `");
+		ft_putstr_fd(kvpair, 2);
+		printerror("': assignment operator (=) expected\n");
+		return (1);
+	}
+	key_value = ft_split(kvpair, '=');
+	if (check_if_key_legit(key_value[0]) == 0)
+	{
+		printerror("export: `");
+		ft_putstr_fd(kvpair, 2);
+		printerror("': not a valid identifier\n");
+		freekeyvalue(&key_value);
+		return (1);
+	}
+	envpc_add(envpc, key_value[0], key_value[1]);
+	freekeyvalue(&key_value);
+	return (0);
+}
+
+int	builtin_export(char **args, char ***envpc)
+{
+	int	i;
+	int	exit;
+
+	exit = 0;
+	if (args_length(args) == 1)
+	{
+		printerror("export: at least 1 name assignment expected (eg: export example=abc123)\n");
+		return (1);
+	}
+	i = 0;
+	while (args[i])
+	{
+		if (try_add_envvar(args[i], envpc) == 1)
+			exit = 1;
+		i++;
+	}
+	return (exit);
+}
+
+int		builtin_unset(char **args, char ***envpc)
+{
+	int	i;
+	int	exit;
+
+	exit = 0;
+	i = 0;
+	while (args[i])
+	{
+		if (check_if_key_legit(args[i]) == 0)
+			exit = 1;
+		else
+			envpc_remove(envpc, args[i]);
+		i++;
+	}
+	return (exit);
+}
+
+int	builtin_env(char **args, char ***envpc)
+{
+	int	i;
+
+	if (args_length(args) > 1)
+	{
+		printerror("env: no options or arguments expected\n");
+		return (126);
+	}
+	i = 0;
+	while ((*envpc)[i])
+	{
+		if (ft_strncmp((*envpc)[i], "?=", 2) != 0)
+			printf("%s\n", (*envpc)[i]);
+		i++;
+	}
+	return (0);
 }
 
 // int	main(int argc, char **argv, char **envp)
