@@ -35,7 +35,6 @@ int	check_file_permissions(char *filename, int mode)
 			printerror("Permission denied\n");
 		// else if (mode == F_OK)
 		// 	printerror("No such file or directory\n");
-
 		return (0);
 	}
 	return (1);

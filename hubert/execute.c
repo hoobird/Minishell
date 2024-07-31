@@ -46,6 +46,73 @@ void	free_command_args(t_command_args **command_args)
 	free(command_args);
 }
 
+void	path_list_free(char **path_list)
+{
+	int i;
+
+	i = 0;
+	while (path_list[i])
+	{
+		free(path_list[i]);
+		i++;
+	}
+	free(path_list);
+}
+
+int	check_executable(char	**envpc, char **command_args)
+{
+	char	*paths;
+	char	**path_list;
+	int		i;
+	char	*binary_path;
+
+	paths = envpc_get_value(envpc, "PATH");
+	if (paths == NULL)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(command_args[0], 2);
+		ft_putstr_fd(": No such file or directory\n", 2);
+		return (NOT_FOUND);
+	}
+	path_list = ft_split(paths, ':');
+	i = 0;
+	while (path_list[i])
+	{
+		binary_path = ft_strjoin(path_list[i], command_args[0]);
+		if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1) // a file and can execute
+		{
+			path_list_free(path_list);
+			free(command_args[0]);
+			command_args[0] = binary_path;
+			return (EXECUTABLE);
+		}
+	}
+	ft_putstr_fd("minishell: ", 2);
+	ft_putstr_fd(command_args[0], 2);
+	ft_putstr_fd(": command not found\n", 2);
+	path_list_free(path_list);
+	return (NOT_FOUND);
+}
+
+int	check_command_type(char	**envpc, char **command_args)
+{
+	if (ft_strcmp(command_args[0], "echo") == 0)
+		return (BUILTIN_ECHO);
+	else if (ft_strcmp(command_args[0], "cd") == 0)
+		return (BUILTIN_CD);
+	else if (ft_strcmp(command_args[0], "pwd") == 0)
+		return (BUILTIN_PWD);
+	else if (ft_strcmp(command_args[0], "export") == 0)
+		return (BUILTIN_EXPORT);
+	else if (ft_strcmp(command_args[0], "unset") == 0)
+		return (BUILTIN_UNSET);
+	else if (ft_strcmp(command_args[0], "env") == 0)
+		return (BUILTIN_ENV);
+	else if (ft_strcmp(command_args[0], "exit") == 0)
+		return (BUILTIN_EXIT);
+	return (check_executable(envpc, command_args));
+}
+
 void	execution(t_command_args **command_args, char **envpc)
 {
 	int i;
@@ -54,14 +121,22 @@ void	execution(t_command_args **command_args, char **envpc)
 	i = 0;
 	while (command_args[i])
 	{
-		// printf("Executing %d\n", i);
-		// if (command_args[i]->cancelexec == 1)
-		// {
-		// 	printf("Skipping execution\n");
-		// 	i++;
-		// 	continue ;
-		// }
 		command_args_string = command_args_extraction(command_args[i]->tokenlist);
+		if (check_command_type(envpc, command_args_string) == NOT_FOUND)
+		{
+			free(command_args_string);
+			i++;
+			continue;
+		}
+		else if (check_command_type(envpc, command_args_string)  < 98)// builtin
+		{
+			// execute builtin
+		}
+		else // executable
+		{
+			// execute executable
+		}
+
 		if (fork() == 0) // child process
 		{
 			if (command_args[i]->writefd != STDOUT_FILENO)
@@ -81,7 +156,7 @@ void	execution(t_command_args **command_args, char **envpc)
 			// execute command
 			execve(ft_strjoin("/bin/", command_args_string[0]), command_args_string, envpc);
 			printerror("minishell: command not found\n");
-			exit(127);
+			ft_exit(127);
 		}
 		// parent process
 		if (command_args[i + 1] != NULL)

@@ -28,6 +28,8 @@ int main(int argc, char *argv[], char *envp[])
 	t_token					**tokenlistlist;
 	t_command_args			**command_args_list;
 
+	envpc = envp_copy(envp); // later then move to the top cuz i need to check if memory leak is not from not freeing envpc
+	envpc_print(envpc);
 	while (1)
 	{
 		buffer = NULL;
@@ -36,7 +38,6 @@ int main(int argc, char *argv[], char *envp[])
 			break ;
 		if (ft_strlen(buffer) > 0)
 			add_history(buffer);
-		envpc = envp_copy(envp); // later then move to the top cuz i need to check if memory leak is not from not freeing envpc
 		// parse input
 		tokenlistlist = parse_input(buffer, envpc);
 		// print_tokenlistlist(tokenlistlist);
@@ -59,7 +60,7 @@ int main(int argc, char *argv[], char *envp[])
 
 		freecommandlist(&command_args_list);
 		free(buffer);
-    	envpc_free(&envpc);
 	}
+	envpc_free(&envpc);
 	return (0);
 }

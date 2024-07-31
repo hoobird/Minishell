@@ -25,5 +25,7 @@ void	builtin_pwd(char **arg, char ***envpc);
 void	builtin_echo(char *flag, char **arg);
 int		check_only_n(char *flag);
 
-# endif
+// builtin_exit.c
+void	builtin_exit(int status);
 
+# endif

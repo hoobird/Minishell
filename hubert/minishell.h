@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/29 22:38:31 by hulim            ###   ########.fr       */
+/*   Updated: 2024/07/31 22:40:19 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@
 #include "builtin.h"
 
 
-// perror.c
+// printerror.c
 int	printerror(char	*errormsg);
 
 typedef struct	s_command_args
@@ -61,6 +61,19 @@ typedef struct	s_command_args
 	int		writefd;
 	int		cancelexec;
 }			t_command_args;
+
+typedef enum	e_command_type
+{
+	BUILTIN_ECHO =91,
+	BUILTIN_CD = 92,
+	BUILTIN_PWD = 93,
+	BUILTIN_EXPORT = 94,
+	BUILTIN_UNSET = 95,
+	BUILTIN_ENV = 96,
+	BUILTIN_EXIT = 97,
+	EXECUTABLE = 98,
+	NOT_FOUND = 99,
+}				t_command_type;
 
 // piping.c
 void    		printpipelist(int **pipelist);
