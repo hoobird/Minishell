@@ -37,31 +37,95 @@ chdir(), accepts one argument, a char *, the  the DST dir
 On success, will change the current process's CWD to the DST dir, retVal 0
 On error, retVal -1, and errno is set
 
-NOTE #1
-chdir() looks like it will fail with an invalid arg, eg. 
-when arg is:
-file, and not dir
-empty str
-randomstr that does not refer to dir
+NOTE
+chdir() seems to accept as an arg, relative paths, eg.
+./learn	# change to "child" directory, 1 level down
+. 		# change to current directory
+../..	# change to "grandparent" directory, 2 levels up
 
--> no need to check if arg for chdir() is indeed a dir!
+TO DO # 31 July 2024
+need to check for 2 conditions:
 
-NOTE #2
-chdir() accepts relative paths, ie. args that start with a .
+if arg is directory # check_file_type(arg)
+AND 
+if arg can be read, permissions # check_file_permissions (arg, R_OK)
+
+
+cd "" # does nothing, stay in the same/current directory
+cd # no arg, change to HOME
+cd abc 123, # more than one arg, stay in the same/current directory, print err msg
+
 */
+
+/*
+helper function
+to determine if char** is valid for builtin_cd
+
+Returns the number of elements in the char **
+NOTE. EXCLUDES the NULL pointer at the end of the char ** array
+*/
+static int len_ch_star_star(char **css)
+{
+	int index;
+
+	index = 0;
+	while (css && css[index])
+		index++;
+	return (index);
+}
+
 void	builtin_cd(char **arg, char ***envpc)
 {
 	char	*dst_dir;
 	char	*tmp;
 	
-	dst_dir = arg[0];
-	if (chdir(dst_dir) == 0)
+	if (len_ch_star_star(arg) >= 2)
 	{
-		tmp = envpc_get_value(*envpc, "PWD");
-		envpc_add(envpc, "OLDPWD", tmp);
-		envpc_add(envpc, "PWD", dst_dir);
+		ft_putstr_fd("minishell: cd: too many arguments", 2);
+		return ;
 	}
-
+	if (len_ch_star_star(arg) == 0)
+	{
+		dst_dir = envpc_get_value(*envpc, "HOME");
+		if (dst_dir == NULL)
+		{
+			ft_putstr_fd("minishell: cd: HOME not set", 2);		
+			return ;
+		}
+	}
+	if (len_ch_star_star(arg) == 1)
+	{
+		dst_dir = arg[0];
+		if (ft_strncmp(dst_dir, "", 1) == 0)
+			return ;
+		if (chdir(dst_dir) == 0)
+		{
+			tmp = envpc_get_value(*envpc, "PWD"); // replace w/ getcwd()
+			envpc_add(envpc, "OLDPWD", tmp);
+			envpc_add(envpc, "PWD", dst_dir);
+		}
+		else if (chdir(dst_dir) == -1)
+		{
+			if (access(dst_dir, F_OK) == -1)
+			{
+				ft_putstr_fd("minishell: cd: ", 2);
+				ft_putstr_fd(dst_dir, 2);
+				ft_putstr_fd(" no such file or directory", 2);
+			}
+		    else if (access(dst_dir, R_OK) == -1)
+		    {
+				ft_putstr_fd("minishell: cd: ", 2);
+				ft_putstr_fd(dst_dir, 2);
+				ft_putstr_fd(" permission denied", 2);
+			}
+		    else
+		    {
+				ft_putstr_fd("minishell: cd: ", 2);
+				ft_putstr_fd(dst_dir, 2);
+				ft_putstr_fd(" not a directory", 2);
+			}
+		}	
+	}
 }
 
 int	main(int ac, char *av[], char **env)
@@ -78,10 +142,16 @@ int	main(int ac, char *av[], char **env)
 	char	*oldpwd;
 	char	*no_arg;
 	
+	char	*arg[3];
+	
 	envpc = envp_copy(env);
 	
 	printf("bef:\n");
 	builtin_pwd(NULL, &env);
+	
+	arg[0] = "./learn";
+	arg[1] = NULL;
+	
 	
 	test_rel_minus_1 = "./learn"; // relative path, directory nested in current directory
 	test_rel_plus_1 = ".."; // relative path, one level up
@@ -117,17 +187,12 @@ int	main(int ac, char *av[], char **env)
 // file as arg
 	printf("\nchdir() w/ an existing file as arg:\n");
 	builtin_cd(&test_fail_1, &envpc);
-	builtin_pwd(NULL, &envpc);
-	
-// 	empty str as arg
-	printf("\nchdir() w/ empty str as arg:\n");
-	builtin_cd(&test_fail_2, &envpc);
-	builtin_pwd(NULL, &envpc);
+	//builtin_pwd(NULL, &envpc);
 	
 // some random str as arg
 	printf("\nchdir() w/ some random str as arg:\n");
 	builtin_cd(&test_fail_3, &envpc);
-	builtin_pwd(NULL, &envpc);
+	//builtin_pwd(NULL, &envpc);
 	
 // abs path, root
 	printf("\nchdir() to root:\n");
@@ -138,12 +203,33 @@ int	main(int ac, char *av[], char **env)
 	printf("\nchdir() to OLDPWD, from env:\n");
 	builtin_cd(&oldpwd, &envpc);
 	builtin_pwd(NULL, &envpc);
-	
+
+//  SPECIAL CASES:
+// 	empty str as arg
+	printf("\nchdir() w/ empty str as arg:\n");
+	builtin_cd(&test_fail_2, &envpc);
+	builtin_pwd(NULL, &envpc);
+
 // no arg
 	printf("\nchdir() with no arg, from env:\n");
 	builtin_cd(&no_arg, &envpc);
 	builtin_pwd(NULL, &envpc);
-		
+	
+	char	*multi_arg[3];
+	
+	multi_arg[0] = "hello";
+	multi_arg[1] = "world";
+	multi_arg[2] = NULL;
+	
+// more than one arg
+	printf("\nchdir() with more than one arg\n");
+	builtin_cd(multi_arg, &envpc);
+	printf("\n");
+	builtin_pwd(NULL, &envpc);	
+	
+	//envpc_print(envpc);
+	envpc_free(&envpc);
 	
 	return (0);
 }
+// cc builtin_cd_pwd.c builtin_env.c check_file_status.c ../Libft/libft.a
