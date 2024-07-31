@@ -91,12 +91,14 @@ void	envpc_add(char ***envpc, char *name, char *value)
 	char	**newenvpc;
 	int		newlength;	// not including the NULL terminator
 	int		i;
+	char 	**temp;
 
 	// if env key already exist, update the value
 	if (envpc_find_index(*envpc, name) != -1)
 	{
-		free((*envpc)[envpc_find_index((*envpc), name)]);
-		(*envpc)[envpc_find_index((*envpc), name)] = envpc_combine_key_value(name, value);
+		temp = &(*envpc)[envpc_find_index((*envpc), name)];
+		free(*temp);
+		*temp = envpc_combine_key_value(name, value);
 		return ;
 	}
 	// if env key does not exist, add new key value pair
@@ -177,7 +179,9 @@ void	envpc_print(char **envpc)
 // 	printf("Length: %d\n", envpc_length(envpc));
 // 	envpc_add(&envpc, "test1", "fries");
 // 	envpc_print(envpc);
-// 	printf("Get value of test1: %s\n", envpc_get_value(envpc, "test1"));
+// 	printf("Get value of test1: %s\n", envpc_get_value(envpc, "PWD"));
+// 	envpc_add(&envpc, "PWD", "NASDKJHASDAS");
+// 	printf("Get value of test1: %s\n", envpc_get_value(envpc, "PWD"));
 // 	// envpc_add(&envpc, "test2", "chicken nuggets");
 // 	// envpc_add(&envpc, "test3", "test");
 // 	// printf("Search for test1: %s\n", envpc[envpc_find_index(envpc, "test1")]);
