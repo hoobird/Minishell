@@ -96,6 +96,7 @@ int	check_executable(char	**envpc, char **command_args)
 
 int	check_command_type(char	**envpc, char **command_args)
 {
+	printf("Checking command: %s\n", command_args[0]);
 	if (ft_strcmp(command_args[0], "echo") == 0)
 		return (BUILTIN_ECHO);
 	else if (ft_strcmp(command_args[0], "cd") == 0)
@@ -133,11 +134,11 @@ void	run_builtin(t_command_args **command_args, int index, char ***envpc, char *
 	if (check_command_type(*envpc, command_args_string) == BUILTIN_ECHO)
 		outcome = builtin_echo(command_args_string);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_CD)
-		printf("WIP: cd\n");
+		outcome = builtin_cd(command_args_string, envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_PWD)
-		printf("WIP: pwd\n");
+		outcome = builtin_pwd(command_args_string, envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXPORT)
-		outcome = builtin_export(command_args_string, envpc);
+		outcome = builtin_export(&command_args_string[1], envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_UNSET)
 		outcome = builtin_unset(command_args_string, envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_ENV)
@@ -151,7 +152,7 @@ void	run_in_child(t_command_args **command_args, int index, char ***envpc, char 
 {
 	int	i;
 
-	if (fork == 0)
+	if (fork() == 0)
 	{
 		if (command_args[index]->writefd != STDOUT_FILENO)
 			dup2(command_args[index]->writefd, STDOUT_FILENO);
@@ -177,7 +178,7 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 {
 	int	i;
 
-	if (fork == 0)
+	if (fork() == 0)
 	{
 		if (command_args[index]->writefd != STDOUT_FILENO)
 			dup2(command_args[index]->writefd, STDOUT_FILENO);

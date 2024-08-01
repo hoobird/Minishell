@@ -206,11 +206,12 @@ int	try_add_envvar(char *kvpair, char ***envpc)
 {
 	char	**key_value;
 
+	printf("kvpair: %s\n", kvpair);
 	if (ft_strchr(kvpair, '=') == NULL)
 	{
 		printerror("export: `");
 		ft_putstr_fd(kvpair, 2);
-		printerror("': assignment operator (=) expected\n");
+		ft_putstr_fd("': assignment operator (=) expected\n",2);
 		return (1);
 	}
 	key_value = ft_split(kvpair, '=');
@@ -218,7 +219,7 @@ int	try_add_envvar(char *kvpair, char ***envpc)
 	{
 		printerror("export: `");
 		ft_putstr_fd(kvpair, 2);
-		printerror("': not a valid identifier\n");
+		ft_putstr_fd("': not a valid identifier\n",2);
 		freekeyvalue(&key_value);
 		return (1);
 	}
@@ -233,7 +234,7 @@ int	builtin_export(char **args, char ***envpc)
 	int	exit;
 
 	exit = 0;
-	if (args_length(args) == 1)
+	if (args_length(args) == 0)
 	{
 		printerror("export: at least 1 name assignment expected (eg: export example=abc123)\n");
 		return (1);
