@@ -85,7 +85,7 @@ int	builtin_cd(char **arg, char ***envpc)
 	
 	if (len_ch_star_star(arg) >= 2)
 	{
-		ft_putstr_fd("minishell: cd: too many arguments", 2);
+		ft_putstr_fd("minishell: cd: too many arguments\n", 2);
 		return (1);
 	}
 
@@ -94,7 +94,7 @@ int	builtin_cd(char **arg, char ***envpc)
 		dst_dir = envpc_get_value(*envpc, "HOME");
 		if (dst_dir == NULL)
 		{
-			ft_putstr_fd("minishell: cd: HOME not set", 2);		
+			ft_putstr_fd("minishell: cd: HOME not set\n", 2);		
 			return (1);
 		}
 		else
@@ -112,17 +112,17 @@ int	builtin_cd(char **arg, char ***envpc)
 				ft_putstr_fd(dst_dir, 2);
 				if (access(dst_dir, F_OK) == -1)
 				{
-					ft_putstr_fd(" no such file or directory", 2);			
+					ft_putstr_fd(" no such file or directory\n", 2);			
 					return (1);
 				}
 				else if (access(dst_dir, R_OK) == -1)
 				{
-					ft_putstr_fd(" permission denied", 2);
+					ft_putstr_fd(" permission denied\n", 2);
 					return (1);
 				}
 				else
 				{
-					ft_putstr_fd(" not a directory", 2);
+					ft_putstr_fd(" not a directory\n", 2);
 					return (1);
 				}
 			}
@@ -147,22 +147,21 @@ int	builtin_cd(char **arg, char ***envpc)
 			ft_putstr_fd(dst_dir, 2);
 			if (access(dst_dir, F_OK) == -1)
 			{
-				ft_putstr_fd(" no such file or directory", 2);			
+				ft_putstr_fd(" no such file or directory\n", 2);			
 				return (1);
 			}
 		    else if (access(dst_dir, R_OK) == -1)
 		    {
-				ft_putstr_fd(" permission denied", 2);
+				ft_putstr_fd(" permission denied\n", 2);
 		    	return (1);
 		    }
 		    else
 		    {
-				ft_putstr_fd(" not a directory", 2);
+				ft_putstr_fd(" not a directory\n", 2);
 				return (1);
 		    }
 		}
 	}
-
 	return (0);
 }
 
