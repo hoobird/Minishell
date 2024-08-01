@@ -10,9 +10,6 @@ hulim and jsu partnership to destroy minishell
 
 
 
-## REMEMBER TO NOT WORK ON MAIN BRANCH
-If accidentally commit, i think need to learn rebasing lol
-
 
 ## Fun resources
 ### Git
