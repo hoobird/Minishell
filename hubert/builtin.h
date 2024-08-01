@@ -21,8 +21,8 @@ char	*shell_expand_append(char **envp, char **str, char *input, int len);
 char	*expandshellvar(char *input, char **envp);
 
 // builtin_cd_pwd.c
-void	builtin_cd(char **arg, char ***envpc);
-void	builtin_pwd(char **arg, char ***envpc);
+int		builtin_cd(char **arg, char ***envpc);
+int		builtin_pwd(char **arg, char ***envpc);
 
 // builtin_echo.c
 int		builtin_echo(char **args);
