@@ -83,6 +83,7 @@ void	add_token_after(t_token *token, char *word, t_tokentype type, int spacesaft
 	newtoken->string = word;
 	newtoken->type = type;
 	newtoken->next = token->next;
+	newtoken->postspace=spacesafter;
 	token->next = newtoken;
 }
 

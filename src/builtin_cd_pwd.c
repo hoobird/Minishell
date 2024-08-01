@@ -23,6 +23,7 @@ NOTE. the calling function will handle any redirect from STDOUT to alternate FD?
 int	builtin_pwd(char **arg, char ***envpc)
 {
 	(void)arg;
+	(void)envpc;
 	char	buf[PATH_MAX];
 	
 	if (getcwd(buf, PATH_MAX) == NULL)

@@ -238,7 +238,6 @@ int	check_error_redirection_pipe(t_token *token)
 t_token	*joinredirects(t_token *token)
 {
 	t_token	*newtoken;
-	t_token	*temp;
 	t_token	*nexttoken;
 	char	*combined;
 	char	*tmp;
@@ -271,7 +270,6 @@ t_token	*joinredirects(t_token *token)
 t_token	*handle_shellvars(char **envp, t_token *token)
 {
 	t_token	*newtoken;
-	t_token	*temp;
 	char	*expanded;
 
 	newtoken = NULL;
@@ -375,10 +373,8 @@ t_token	**split_by_pipe(t_token *token)
 {
 	t_token	**newtokens;
 	int		i;
-	int		pipes;
 
 	newtokens = ft_calloc(count_pipes(token) + 2, sizeof(t_token *));
-	pipes = count_pipes(token);
 	i = 0;
 	while (token != NULL)
 	{

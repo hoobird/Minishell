@@ -129,7 +129,7 @@ int		command_args_len(t_command_args **command_args)
 	return (i);
 }
 
-void	run_builtin(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+void	run_builtin(char ***envpc, char **command_args_string)
 {
 	int	outcome;
 
@@ -172,7 +172,7 @@ void	run_in_child(t_command_args **command_args, int index, char ***envpc, char 
 			i++;
 		}
 		// execute builtin
-		run_builtin(command_args, index, envpc, command_args_string);
+		run_builtin(envpc, command_args_string);
 		builtin_exit(0);
 	}
 }
@@ -219,12 +219,15 @@ void	execution(t_command_args **command_args, char ***envpc)
 		{
 			// execute builtin
 			if (command_args_len(command_args) == 1) // no pipes so run in parent
-				run_builtin(command_args, i, envpc, command_args_string);
+				run_builtin(envpc, command_args_string);
 			else // pipes avail then run in child
 				run_in_child(command_args, i, envpc, command_args_string);
 		}
 		else  if (command_type == EXECUTABLE)// executable
+		{
 			execute_in_child(command_args, i, envpc, command_args_string);
+			free(command_args_string[0]);
+		}
 		// close all the pipes used
 		if (command_args[i + 1] != NULL)
 			close(command_args[i]->writefd);
