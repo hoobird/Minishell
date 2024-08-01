@@ -78,14 +78,17 @@ int	check_executable(char	**envpc, char **command_args)
 	i = 0;
 	while (path_list[i])
 	{
-		binary_path = ft_strjoin(path_list[i], command_args[0]);
+		paths = ft_strjoin(path_list[i], "/");
+		binary_path = ft_strjoin(paths, command_args[0]);
+		free(paths);
 		if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1) // a file and can execute
 		{
 			path_list_free(path_list);
-			free(command_args[0]);
-			command_args[0] = binary_path;
+			*command_args = binary_path;
 			return (EXECUTABLE);
 		}
+		free(binary_path);
+		i++;
 	}
 	ft_putstr_fd("minishell: ", 2);
 	ft_putstr_fd(command_args[0], 2);
@@ -134,9 +137,9 @@ void	run_builtin(t_command_args **command_args, int index, char ***envpc, char *
 	if (check_command_type(*envpc, command_args_string) == BUILTIN_ECHO)
 		outcome = builtin_echo(command_args_string);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_CD)
-		outcome = builtin_cd(command_args_string, envpc);
+		outcome = builtin_cd(&command_args_string[1], envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_PWD)
-		outcome = builtin_pwd(command_args_string, envpc);
+		outcome = builtin_pwd(&command_args_string[1], envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXPORT)
 		outcome = builtin_export(&command_args_string[1], envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_UNSET)
@@ -205,12 +208,14 @@ void	execution(t_command_args **command_args, char ***envpc)
 {
 	int i;
 	char	**command_args_string;
+	int		command_type;
 
 	i = 0;
 	while (command_args[i])
 	{
 		command_args_string = command_args_extraction(command_args[i]->tokenlist);
-		if (check_command_type(*envpc, command_args_string)  < 98)// builtin
+		command_type = check_command_type(*envpc, command_args_string);
+		if (command_type  < 98)// builtin
 		{
 			// execute builtin
 			if (command_args_len(command_args) == 1) // no pipes so run in parent
@@ -218,7 +223,7 @@ void	execution(t_command_args **command_args, char ***envpc)
 			else // pipes avail then run in child
 				run_in_child(command_args, i, envpc, command_args_string);
 		}
-		else  if (check_command_type(*envpc, command_args_string) == EXECUTABLE)// executable
+		else  if (command_type == EXECUTABLE)// executable
 			execute_in_child(command_args, i, envpc, command_args_string);
 		// close all the pipes used
 		if (command_args[i + 1] != NULL)
