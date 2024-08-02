@@ -99,7 +99,6 @@ int	check_executable(char	**envpc, char **command_args)
 
 int	check_command_type(char	**envpc, char **command_args)
 {
-	printf("Checking command: %s\n", command_args[0]);
 	if (ft_strcmp(command_args[0], "echo") == 0)
 		return (BUILTIN_ECHO);
 	else if (ft_strcmp(command_args[0], "cd") == 0)

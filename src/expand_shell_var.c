@@ -6,6 +6,8 @@ int	check_envvar_delimiter(char *start)
 
 	if (start[0] != '$')
 		return (0);
+	if (start[1] && start[1] == '?')
+		return (2);
 	if (start[1] && !(ft_isalpha(start[1]) || start[1] == '_'))
 		return (1);
 	i = 2;

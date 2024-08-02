@@ -103,7 +103,7 @@ void	process_quotes_handle_in_out_quote(t_token **token, char *str, char *quoted
 		*quoted = str[i];
 		*start = i;
 	}
-	else // if in quote
+	else if (*quoted == str[i]) // if in quote
 	{
 		if (*quoted == '\'') 
 			check_then_add_token(token, ft_substr(str, *start+1, i - *start-1), SQUOTE, check_if_space(&str[i+1]));

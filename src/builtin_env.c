@@ -206,7 +206,6 @@ int	try_add_envvar(char *kvpair, char ***envpc)
 {
 	char	**key_value;
 
-	printf("kvpair: %s\n", kvpair);
 	if (ft_strchr(kvpair, '=') == NULL)
 	{
 		printerror("export: `");

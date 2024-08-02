@@ -31,6 +31,7 @@ int main(int argc, char *argv[], char *envp[])
 	envpc = envp_copy(envp); // later then move to the top cuz i need to check if memory leak is not from not freeing envpc
 	while (1)
 	{
+		envpc_add(&envpc, "?", "0");
 		buffer = NULL;
 		buffer = readline(PROMPT);
 		if (!buffer)
@@ -56,8 +57,6 @@ int main(int argc, char *argv[], char *envp[])
 
 		// then execution
 		execution(command_args_list, &envpc);
-		printf("\n");
-		printcommandlist(command_args_list);
 
 		freecommandlist(&command_args_list);
 		free(buffer);
