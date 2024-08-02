@@ -4,14 +4,18 @@ int	check_envvar_delimiter(char *start)
 {
 	int	i;
 
-	if (start[0] != '$')
+	// check if the first character is a dollar sign
+	if (*start != '$')
 		return (0);
-	if (start[1] && start[1] == '?')
+	// check if its specificall $?
+	if (start[1] == '?')
 		return (2);
-	if (start[1] && !(ft_isalpha(start[1]) || start[1] == '_'))
+	// check if the next character is a letter or an underscore
+	if (!ft_isalpha(start[1]) && start[1] != '_')
 		return (1);
-	i = 2;
-	while (start[i] && (ft_isalnum(start[i]) || start[i] == '_'))
+	// check if the following characters are a letter, an underscore, or a number
+	i = 1;
+	while (ft_isalnum(start[i]) || start[i] == '_')
 		i++;
 	return (i);
 }
@@ -22,7 +26,7 @@ char	*shell_expand_append(char **envp, char **str, char *input, int len)
 	char 	*key;
 	char	*value;
 
-	if (*input == '$')
+	if (*input == '$' && len > 1)
 	{
 		key = ft_substr(input, 1, len - 1);
 		value = envpc_get_value(envp, key);

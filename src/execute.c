@@ -212,21 +212,24 @@ void	execution(t_command_args **command_args, char ***envpc)
 	i = 0;
 	while (command_args[i])
 	{
-		command_args_string = command_args_extraction(command_args[i]->tokenlist);
-		command_type = check_command_type(*envpc, command_args_string);
-		if (command_type  < 98)// builtin
-		{
-			// execute builtin
-			if (command_args_len(command_args) == 1) // no pipes so run in parent
-				run_builtin(envpc, command_args_string);
-			else // pipes avail then run in child
-				run_in_child(command_args, i, envpc, command_args_string);
-		}
-		else  if (command_type == EXECUTABLE)// executable
-		{
-			execute_in_child(command_args, i, envpc, command_args_string);
-			free(command_args_string[0]);
-		}
+		// if (command_args[i]->cancelexec == 0)
+		// {
+			command_args_string = command_args_extraction(command_args[i]->tokenlist);
+			command_type = check_command_type(*envpc, command_args_string);
+			if (command_type  < 98)// builtin
+			{
+				// execute builtin
+				if (command_args_len(command_args) == 1) // no pipes so run in parent
+					run_builtin(envpc, command_args_string);
+				else // pipes avail then run in child
+					run_in_child(command_args, i, envpc, command_args_string);
+			}
+			else  if (command_type == EXECUTABLE)// executable
+			{
+				execute_in_child(command_args, i, envpc, command_args_string);
+				free(command_args_string[0]);
+			}
+		// }
 		// close all the pipes used
 		if (command_args[i + 1] != NULL)
 			close(command_args[i]->writefd);

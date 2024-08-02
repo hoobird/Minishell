@@ -6,7 +6,7 @@ int	check_file_type(char *path)
 	struct stat fileStat;
 
 	if (stat(path, &fileStat) == -1) {
-		perror("stat failed");
+		// perror("stat failed");
 		return (-1);
 	}
 	if ((fileStat.st_mode & S_IFMT) == S_IFREG)
@@ -29,10 +29,10 @@ int	check_file_permissions(char *filename, int mode)
 {
 	if (access(filename, mode) == -1)
 	{
-		if (mode == R_OK)
-			printerror("No such file or directory\n");
-		else if (mode == W_OK)
-			printerror("Permission denied\n");
+		// if (mode == R_OK)
+		// 	printerror("No such file or directory\n");
+		// else if (mode == W_OK)
+		// 	printerror("Permission denied\n");
 		// else if (mode == F_OK)
 		// 	printerror("No such file or directory\n");
 		return (0);
