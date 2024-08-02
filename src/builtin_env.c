@@ -205,20 +205,24 @@ void	freekeyvalue(char ***key_value)
 int	try_add_envvar(char *kvpair, char ***envpc)
 {
 	char	**key_value;
+	int		equalexist;
 
-	if (ft_strchr(kvpair, '=') == NULL)
-	{
-		printerror("export: `");
-		ft_putstr_fd(kvpair, 2);
-		ft_putstr_fd("': assignment operator (=) expected\n",2);
-		return (1);
-	}
+	equalexist = 0;
+	if (ft_strchr(kvpair, '=') != NULL)
+		equalexist = 1;
 	key_value = ft_split(kvpair, '=');
 	if (check_if_key_legit(key_value[0]) == 0)
 	{
 		printerror("export: `");
 		ft_putstr_fd(kvpair, 2);
 		ft_putstr_fd("': not a valid identifier\n",2);
+		freekeyvalue(&key_value);
+		return (1);
+	}
+	if (equalexist == 0)
+	{	printerror("export: `");
+		ft_putstr_fd(kvpair, 2);
+		ft_putstr_fd("': assignment operator (=) expected\n",2);
 		freekeyvalue(&key_value);
 		return (1);
 	}
