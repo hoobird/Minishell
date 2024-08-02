@@ -27,6 +27,12 @@ OBJS = $(addprefix $(OBJDIR), $(SRCFILES:.c=.o))
 ############################### RULES ###############################
 all: $(NAME)
 
+debug: $(LIBFT_A) $(OBJS)
+	$(CC) $(CFLAGS) -g $(OBJS) $(LIBFT_A) -lreadline -o $(NAME)
+
+valgrind : debug
+	valgrind --leak-check=full --show-leak-kinds=all --suppressions=./readline.supp --track-fds=yes --trace-children=yes --track-origins=yes ./$(NAME)
+
 $(NAME): $(LIBFT_A) $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -lreadline -o $(NAME)
 

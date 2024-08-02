@@ -13,7 +13,7 @@ int ft_isbashdelimiter(char *pt)
 	return (0);
 }
 
-// return 1 if there is space, returns 0 if theres no space
+// return 1 if there ienvpc_add(envpc, "?", ft_itoa(outcome));s space, returns 0 if theres no space
 int	check_if_space(char *str)
 {
 	if (*str == ' ' || *str == '\t')

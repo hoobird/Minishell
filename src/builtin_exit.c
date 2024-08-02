@@ -25,16 +25,20 @@ void	builtin_exit_string(char **status)
 	i = 0;
 	if (args_length(status) > 2)
 	{
-		printf("exit\n");
-		printf("minishell: exit: too many arguments\n");
+		ft_putstr_fd("exit\n",2);
+		ft_putstr_fd("minishell: exit: too many arguments\n",2);
 		builtin_exit(1);
 	}
+	if (status[1][0] == '-' || status[1][0] == '+')
+		i++;
 	while (status[1][i])
 	{
 		if (!ft_isdigit(status[1][i]))
 		{
-			printf("exit\n");
-			printf("minishell: exit: %s: numeric argument required\n", status[1]);
+			ft_putstr_fd("exit\n",2);
+			ft_putstr_fd("minishell: exit: ", 2);
+			ft_putstr_fd(status[1], 2);
+			ft_putstr_fd(": numeric argument required\n", 2);
 			builtin_exit(2);
 		}
 		i++;

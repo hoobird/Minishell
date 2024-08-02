@@ -128,7 +128,7 @@ int		command_args_len(t_command_args **command_args)
 	return (i);
 }
 
-void	run_builtin(char ***envpc, char **command_args_string)
+int	run_builtin(char ***envpc, char **command_args_string)
 {
 	int	outcome;
 
@@ -147,7 +147,7 @@ void	run_builtin(char ***envpc, char **command_args_string)
 		outcome = builtin_env(command_args_string, envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXIT)
 		builtin_exit_string(command_args_string);
-	envpc_add(envpc, "?", ft_itoa(outcome));
+	return (outcome);
 }
 
 void	run_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
@@ -171,8 +171,7 @@ void	run_in_child(t_command_args **command_args, int index, char ***envpc, char 
 			i++;
 		}
 		// execute builtin
-		run_builtin(envpc, command_args_string);
-		builtin_exit(0);
+		builtin_exit(run_builtin(envpc, command_args_string));
 	}
 }
 
@@ -208,19 +207,22 @@ void	execution(t_command_args **command_args, char ***envpc)
 	int i;
 	char	**command_args_string;
 	int		command_type;
+	int		status;
+	int		builtin_parent_status;
 
+	builtin_parent_status = -999;
 	i = 0;
 	while (command_args[i])
 	{
-		// if (command_args[i]->cancelexec == 0)
-		// {
+		if (command_args[i]->cancelexec == 0)
+		{
 			command_args_string = command_args_extraction(command_args[i]->tokenlist);
 			command_type = check_command_type(*envpc, command_args_string);
 			if (command_type  < 98)// builtin
 			{
 				// execute builtin
 				if (command_args_len(command_args) == 1) // no pipes so run in parent
-					run_builtin(envpc, command_args_string);
+					builtin_parent_status = run_builtin(envpc, command_args_string);
 				else // pipes avail then run in child
 					run_in_child(command_args, i, envpc, command_args_string);
 			}
@@ -229,7 +231,9 @@ void	execution(t_command_args **command_args, char ***envpc)
 				execute_in_child(command_args, i, envpc, command_args_string);
 				free(command_args_string[0]);
 			}
-		// }
+		}
+		else
+			envpc_add(envpc, "?", "1");
 		// close all the pipes used
 		if (command_args[i + 1] != NULL)
 			close(command_args[i]->writefd);
@@ -238,8 +242,11 @@ void	execution(t_command_args **command_args, char ***envpc)
 		free(command_args_string);
 		i++;
 	}
-	while (waitpid(-1, NULL, 0) > 0)
+	while (waitpid(-1, &status, 0) > 0)
 		;
+	envpc_add(envpc, "?", ft_itoa(WEXITSTATUS(status)));
+	if (builtin_parent_status != -999)
+		envpc_add(envpc, "?", ft_itoa(builtin_parent_status));
 }
 
 

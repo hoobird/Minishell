@@ -34,7 +34,7 @@ void	redirect_output(int *fdWrite, int fd2)
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-void	redirect_heredoc(char *eof, int *fdRead)
+int	redirect_heredoc(char *eof)
 {
 	char	*line;
 	int		pipes[2];
@@ -52,10 +52,35 @@ void	redirect_heredoc(char *eof, int *fdRead)
 		line = readline("> ");
 	}
 	free(line);
-	if (*fdRead != STDIN_FILENO)
-		close(*fdRead);
 	close(pipes[1]);
-	*fdRead = pipes[0];
+	return (pipes[0]);
+}
+
+
+void	perform_heredoc_first(t_command_args **command_args)
+{
+	int		i;
+	t_token	*tokens;
+	int		actual_readfd;
+
+	i = 0;
+	while (command_args[i])
+	{
+		tokens = command_args[i]->tokenlist;
+		actual_readfd = command_args[i]->readfd;
+		while (tokens)
+		{
+			if (tokens->type == RE_HEREDOC)
+			{
+				if (actual_readfd != 0)
+					close(actual_readfd);
+				actual_readfd = redirect_heredoc(tokens->string);
+			}
+			tokens = tokens->next;
+		}
+		command_args[i]->readfd = actual_readfd;
+		i++;
+	}
 }
 
 // redirection >  be 41
@@ -75,6 +100,7 @@ void	perform_redirection(t_command_args **command_args)
 
 	i = 0;
 	result = 1;
+	perform_heredoc_first(command_args);
 	while (command_args[i])
 	{
 		tokens = command_args[i]->tokenlist;
@@ -97,10 +123,12 @@ void	perform_redirection(t_command_args **command_args)
 				tokens = tokens->next;
 				continue ;
 			}
-			if (result == 0) // permission denied
+			if (result == 0) // permission denied 
 			{
-				command_args[i]->cancelexec = 1;
-					// cancel execution once redirection fails
+				command_args[i]->cancelexec = 1; // cancel execution once redirection fails
+				ft_putstr_fd("minishell: ", 2);
+				ft_putstr_fd(tokens->string, 2);
+				ft_putstr_fd(": Permission denied\n", 2);
 				break ;
 			}
 			// perform redirection
@@ -111,10 +139,7 @@ void	perform_redirection(t_command_args **command_args)
 				redirect_output(&(command_args[i]->writefd),
 					open(tokens->string, O_WRONLY | O_APPEND | O_CREAT, 0644));
 			else if (tokens->type == RE_INPUT)
-				redirect_input(&(command_args[i]->readfd), open(tokens->string,
-						O_RDONLY));
-			else if (tokens->type == RE_HEREDOC)
-				redirect_heredoc(tokens->string, &(command_args[i]->readfd));
+				redirect_input(&(command_args[i]->readfd), open(tokens->string, O_RDONLY));
 			tokens = tokens->next;
 		}
 		i++;

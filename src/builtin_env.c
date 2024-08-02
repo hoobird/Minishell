@@ -187,12 +187,18 @@ int	check_if_key_legit(char *key)
 {
 	int	i;
 
+	if (key == NULL)
+		return (0);
 	if (key[0] && !(ft_isalpha(key[0]) || key[0] == '_'))
 		return (0);
 	i = 1;
-	while (key[i] && (ft_isalnum(key[i]) || key[i] == '_'))
+	while (key[i])
+	{
+		if (!(ft_isalnum(key[i]) || key[i] == '_'))
+			return (0);
 		i++;
-	return (i);
+	}
+	return (1);
 }
 
 void	freekeyvalue(char ***key_value)
@@ -224,7 +230,7 @@ int	try_add_envvar(char *kvpair, char ***envpc)
 		ft_putstr_fd(kvpair, 2);
 		ft_putstr_fd("': assignment operator (=) expected\n",2);
 		freekeyvalue(&key_value);
-		return (1);
+		return (0);
 	}
 	envpc_add(envpc, key_value[0], key_value[1]);
 	freekeyvalue(&key_value);

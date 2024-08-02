@@ -29,9 +29,9 @@ int main(int argc, char *argv[], char *envp[])
 	t_command_args			**command_args_list;
 
 	envpc = envp_copy(envp); // later then move to the top cuz i need to check if memory leak is not from not freeing envpc
+	envpc_add(&envpc, "?", "0");
 	while (1)
 	{
-		envpc_add(&envpc, "?", "0");
 		buffer = NULL;
 		buffer = readline(PROMPT);
 		if (!buffer)

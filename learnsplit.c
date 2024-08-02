@@ -7,7 +7,7 @@
 
 int main()
 {
-	char *str = "hello";
+	char *str = "=";
 	char **split = ft_split(str, '=');
 	int i = 0;
 	while (split[i])
