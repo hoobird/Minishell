@@ -43,7 +43,7 @@ int main(int argc, char *argv[], char *envp[])
 		// print_tokenlistlist(tokenlistlist);
 		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(tokenlistlist))
 		{
-			printf("Error: parsing failed\n");
+			// printf("Error: parsing failed\n");
 			continue ;
 		}
 		// print_tokenlistlist(tokenlistlist);

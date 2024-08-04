@@ -69,6 +69,8 @@ void    generate_pipes(t_command_args **command_args_list, int no_pipes)
     int i;
     int **pipefd;
 
+    if (no_pipes <= 0)
+        return ;
     pipefd = ft_calloc(sizeof(int *), no_pipes);
     if (!pipefd)
     {
@@ -93,10 +95,10 @@ void    generate_pipes(t_command_args **command_args_list, int no_pipes)
         command_args_list[i + 1]->readfd = pipefd[i][0];
         i++;
     }
-    while (i >= 0)
+    while (i > 0)
     {
-        free(pipefd[i]);
         i--;
+        free(pipefd[i]);
     }
     free(pipefd);
     return ;

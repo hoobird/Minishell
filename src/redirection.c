@@ -113,24 +113,31 @@ void	perform_redirection(t_command_args **command_args)
 				if (check_file_permissions(tokens->string, F_OK) == 1)
 					result = check_file_permissions(tokens->string, W_OK);
 			}
-			else if (tokens->type == RE_INPUT) // < need read permission
+			else if (tokens->type == RE_INPUT) // < need read permission and need to exist
 			{
-				if (check_file_permissions(tokens->string, F_OK) == 1)
+				if (check_file_permissions(tokens->string, F_OK) == 1 && check_file_type(tokens->string) == 1)
 					result = check_file_permissions(tokens->string, R_OK);
+				else
+					result = 1; // file does not exist
+				
 			}
 			else if (tokens->type != RE_HEREDOC)
 			{
 				tokens = tokens->next;
 				continue ;
 			}
-			if (result == 0) // permission denied 
+			if (result == 0 || result == 1) // permission denied or file does not exist
 			{
-				command_args[i]->cancelexec = 1; // cancel execution once redirection fails
+				command_args[i]->cancelexec = result + 1; // cancel execution once redirection fails
 				ft_putstr_fd("minishell: ", 2);
 				ft_putstr_fd(tokens->string, 2);
-				ft_putstr_fd(": Permission denied\n", 2);
+				if (result == 0)
+					ft_putstr_fd(": Permission denied\n", 2);
+				else if (result == 1)
+					ft_putstr_fd(": No such file or directory\n", 2);
 				break ;
 			}
+
 			// perform redirection
 			if (tokens->type == RE_OUTPUT)
 				redirect_output(&(command_args[i]->writefd),

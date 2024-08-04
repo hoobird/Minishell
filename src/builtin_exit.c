@@ -12,10 +12,7 @@ static int	args_length(char **args)
 
 void	builtin_exit(int status)
 {
-	unsigned char	exit_status;
-
-	exit_status = (unsigned char)status;
-	exit(exit_status);
+	exit(status);
 }
 
 void	builtin_exit_string(char **status)
