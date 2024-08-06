@@ -83,18 +83,24 @@ int	check_executable(char	**envpc, char **command_args)
 		paths = ft_strjoin(path_list[i], "/");
 		binary_path = ft_strjoin(paths, command_args[0]);
 		free(paths);
-		if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1) // a file and can execute
+		if (check_file_type(binary_path) == 1)
 		{
+			if (check_file_permissions(binary_path, X_OK) == 1) // a file and can execute
+			{
+				path_list_free(path_list);
+				*command_args = binary_path;
+				return (EXECUTABLE);
+			}
+		}
+		else if (check_file_type(binary_path) == 2) // a directory
+		{
+			free(binary_path);
 			path_list_free(path_list);
-			*command_args = binary_path;
-			return (EXECUTABLE);
+			return (DIRECTORY);
 		}
 		free(binary_path);
 		i++;
 	}
-	ft_putstr_fd("minishell: ", 2);
-	ft_putstr_fd(command_args[0], 2);
-	ft_putstr_fd(": command not found\n", 2);
 	path_list_free(path_list);
 	return (NOT_FOUND);
 }
@@ -153,6 +159,23 @@ int	run_builtin(char ***envpc, char **command_args_string)
 	return (outcome);
 }
 
+int		run_in_parent(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+{
+	int		outcome;
+
+	if (command_args[index]->writefd != STDOUT_FILENO)
+		dup2(command_args[index]->writefd, STDOUT_FILENO);
+	if (command_args[index]->readfd != STDIN_FILENO)
+		dup2(command_args[index]->readfd, STDIN_FILENO);
+	outcome = run_builtin(envpc, command_args_string);
+	// close all pipes
+	if (command_args[index]->writefd != STDOUT_FILENO)
+		close(command_args[index]->writefd);
+	if (command_args[index]->readfd != STDIN_FILENO)
+		close(command_args[index]->readfd);
+	return (outcome);
+}
+
 void	run_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
 {
 	int	i;
@@ -167,9 +190,9 @@ void	run_in_child(t_command_args **command_args, int index, char ***envpc, char 
 		i = 0;
 		while (command_args[i])
 		{
-			if (command_args[i + 1] != NULL)
+			if (command_args[i]->writefd != STDOUT_FILENO)
 				close(command_args[i]->writefd);
-			if (i != 0)
+			if (command_args[i]->readfd != STDIN_FILENO)
 				close(command_args[i]->readfd);
 			i++;
 		}
@@ -193,9 +216,9 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 		i = 0;
 		while (command_args[i])
 		{
-			if (command_args[i + 1] != NULL)
+			if (command_args[i]->writefd != STDOUT_FILENO)
 				close(command_args[i]->writefd);
-			if (i != 0)
+			if (command_args[i]->readfd != STDIN_FILENO)
 				close(command_args[i]->readfd);
 			i++;
 		}
@@ -208,7 +231,11 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 
 void	exit_child(int status)
 {
-	builtin_exit(status);
+	pid_t pid;
+
+	pid = fork();
+	if (pid == 0)
+		builtin_exit(status);
 }
 
 void	execution(t_command_args **command_args, char ***envpc)
@@ -217,12 +244,13 @@ void	execution(t_command_args **command_args, char ***envpc)
 	char	**command_args_string;
 	int		command_type;
 	int		status;
-	int		builtin_parent_status;
+	int		last_status;
 
-	builtin_parent_status = -999;
+	last_status = -999;
 	i = 0;
 	while (command_args[i])
 	{
+		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
 		if (command_args[i]->cancelexec == 0)
 		{
 			command_args_string = command_args_extraction(command_args[i]->tokenlist);
@@ -231,8 +259,9 @@ void	execution(t_command_args **command_args, char ***envpc)
 			{
 				// execute builtin
 				if (command_args_len(command_args) == 1) // no pipes so run in parent
-					builtin_parent_status = run_builtin(envpc, command_args_string);
-					// run_builtin(envpc, command_args_string);
+				{
+					status = run_in_parent(command_args, i, envpc, command_args_string);
+				}
 				else // pipes avail then run in child
 					run_in_child(command_args, i, envpc, command_args_string);
 			}
@@ -241,24 +270,38 @@ void	execution(t_command_args **command_args, char ***envpc)
 				execute_in_child(command_args, i, envpc, command_args_string);
 				free(command_args_string[0]);
 			}
+			else if (command_type == DIRECTORY)
+			{
+				ft_putstr_fd("minishell: ", 2);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": is a directory\n", 2);
+				status = 126;
+			}
 			else
-				exit_child(127);
+			{
+				ft_putstr_fd("minishell: ", 2);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": command not found\n", 2);
+				status = 127;
+			}
+			free(command_args_string);
 		}
 		else
-			exit_child(command_args[i]->cancelexec % 2);
+			status = command_args[i]->cancelexec % 2;
 		// close all the pipes used
-		if (command_args[i + 1] != NULL)
+		if (command_args[i]->writefd != STDOUT_FILENO)
 			close(command_args[i]->writefd);
-		if (i != 0)
+		if (command_args[i]->readfd != STDIN_FILENO)
 			close(command_args[i]->readfd);
-		free(command_args_string);
+		if (command_args[i+1] == NULL)
+			last_status = status;
 		i++;
 	}
 	while (waitpid(-1, &status, 0) > 0)
 		;
 	envpc_add(envpc, "?", ft_itoa(WEXITSTATUS(status)));
-	if (builtin_parent_status != -999)
-		envpc_add(envpc, "?", ft_itoa(builtin_parent_status));
+	if (last_status != -999)
+		envpc_add(envpc, "?", ft_itoa(last_status));
 }
 
 
