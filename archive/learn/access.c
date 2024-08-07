@@ -1,7 +1,8 @@
 #include <unistd.h>
+#include <stdio.h>
 
 int main() {
-	char *path = "hubert/learn/access,c";
+	char *path = "hello/test";
 
 	if (access(path, F_OK) == 0) {
 		printf("File exists\n");

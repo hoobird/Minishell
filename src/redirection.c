@@ -107,8 +107,7 @@ void	perform_redirection(t_command_args **command_args)
 		while (tokens)
 		{
 			// check permission first
-			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND)
-				// > and >> need write permission
+			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND) // > and >> need write permission
 			{
 				if (check_file_permissions(tokens->string, F_OK) == 1)
 					result = check_file_permissions(tokens->string, W_OK);

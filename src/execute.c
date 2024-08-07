@@ -246,6 +246,7 @@ void	execution(t_command_args **command_args, char ***envpc)
 	int		status;
 	int		last_status;
 
+	status = -999;
 	last_status = -999;
 	i = 0;
 	while (command_args[i])
@@ -302,6 +303,7 @@ void	execution(t_command_args **command_args, char ***envpc)
 	envpc_add(envpc, "?", ft_itoa(WEXITSTATUS(status)));
 	if (last_status != -999)
 		envpc_add(envpc, "?", ft_itoa(last_status));
+	// printf("last_status = %d\n", last_status);
 }
 
 
