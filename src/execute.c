@@ -61,7 +61,7 @@ void	path_list_free(char **path_list)
 	free(path_list);
 }
 
-int	check_executable(char	**envpc, char **command_args)
+int	check_executable_in_path(char **envpc, char **command_args)
 {
 	char	*paths;
 	char	**path_list;
@@ -69,39 +69,44 @@ int	check_executable(char	**envpc, char **command_args)
 	char	*binary_path;
 
 	paths = envpc_get_value(envpc, "PATH");
-	if (paths == NULL)
+	if (paths != NULL) // if PATH exists
 	{
-		ft_putstr_fd("minishell: ", 2);
-		ft_putstr_fd(command_args[0], 2);
-		ft_putstr_fd(": No such file or directory\n", 2);
-		return (NOT_FOUND);
-	}
-	path_list = ft_split(paths, ':');
-	i = 0;
-	while (path_list[i])
-	{
-		paths = ft_strjoin(path_list[i], "/");
-		binary_path = ft_strjoin(paths, command_args[0]);
-		free(paths);
-		if (check_file_type(binary_path) == 1)
+		path_list = ft_split(paths, ':');
+		i = 0;
+		while (path_list[i])
 		{
-			if (check_file_permissions(binary_path, X_OK) == 1) // a file and can execute
+			paths = ft_strjoin(path_list[i], "/");
+			binary_path = ft_strjoin(paths, command_args[0]);
+			free(paths);
+			if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
 			{
 				path_list_free(path_list);
 				*command_args = binary_path;
 				return (EXECUTABLE);
 			}
-		}
-		else if (check_file_type(binary_path) == 2) // a directory
-		{
 			free(binary_path);
-			path_list_free(path_list);
-			return (DIRECTORY);
+			i++;
 		}
-		free(binary_path);
-		i++;
+		path_list_free(path_list);
 	}
-	path_list_free(path_list);
+	return (NOT_FOUND);
+}
+
+int	check_executable(char **envpc, char **command_args)
+{
+	if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
+		return (EXECUTABLE);
+	if (check_file_permissions(command_args[0], F_OK) == 0) // file not found
+		return (NO_SUCH_FILE_OR_DIRECTORY);
+	if (check_file_type(command_args[0]) == 2) // directory
+		return (DIRECTORY);
+	if (check_file_type(command_args[0]) == 1) // file
+	{
+		if (check_file_permissions(command_args[0], X_OK) == 1) // executable
+			return (EXECUTABLE);
+		else // no permission
+			return (PERMISSION_DENIED);
+	}
 	return (NOT_FOUND);
 }
 
@@ -283,14 +288,28 @@ void	execution(t_command_args **command_args, char ***envpc)
 			{
 				ft_putstr_fd("minishell: ", 1);
 				ft_putstr_fd(command_args_string[0], 2);
-				ft_putstr_fd(": is a directory\n", 2);
+				ft_putstr_fd(": Is a directory\n", 2);
 				status = 126;
 			}
-			else
+			else if (command_type == PERMISSION_DENIED)
+			{
+				ft_putstr_fd("minishell: ", 1);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": Permission denied\n", 2);
+				status = 126;
+			}
+			else if (command_type == NOT_FOUND)
 			{
 				ft_putstr_fd("minishell: ", 1);
 				ft_putstr_fd(command_args_string[0], 2);
 				ft_putstr_fd(": command not found\n", 2);
+				status = 127;
+			}
+			else if (command_type == NO_SUCH_FILE_OR_DIRECTORY)
+			{
+				ft_putstr_fd("minishell: ", 1);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": No such file or directory\n", 2);
 				status = 127;
 			}
 			free(command_args_string);
