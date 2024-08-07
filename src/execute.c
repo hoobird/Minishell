@@ -162,7 +162,11 @@ int	run_builtin(char ***envpc, char **command_args_string)
 int		run_in_parent(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
 {
 	int		outcome;
+	int		actual_readfd;
+	int		actual_writefd;
 
+	actual_readfd = dup(STDIN_FILENO);
+	actual_writefd = dup(STDOUT_FILENO);
 	if (command_args[index]->writefd != STDOUT_FILENO)
 		dup2(command_args[index]->writefd, STDOUT_FILENO);
 	if (command_args[index]->readfd != STDIN_FILENO)
@@ -173,6 +177,10 @@ int		run_in_parent(t_command_args **command_args, int index, char ***envpc, char
 		close(command_args[index]->writefd);
 	if (command_args[index]->readfd != STDIN_FILENO)
 		close(command_args[index]->readfd);
+	dup2(actual_readfd, STDIN_FILENO);
+	dup2(actual_writefd, STDOUT_FILENO);
+	close(actual_readfd);
+	close(actual_writefd);
 	return (outcome);
 }
 
@@ -246,11 +254,11 @@ void	execution(t_command_args **command_args, char ***envpc)
 	int		status;
 	int		last_status;
 
-	status = 0;
 	last_status = -999;
 	i = 0;
 	while (command_args[i])
 	{
+		status = 0;	
 		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
 		if (command_args[i]->cancelexec == 0)
 		{
@@ -273,14 +281,14 @@ void	execution(t_command_args **command_args, char ***envpc)
 			}
 			else if (command_type == DIRECTORY)
 			{
-				ft_putstr_fd("minishell: ", 2);
+				ft_putstr_fd("minishell: ", 1);
 				ft_putstr_fd(command_args_string[0], 2);
 				ft_putstr_fd(": is a directory\n", 2);
 				status = 126;
 			}
 			else
 			{
-				ft_putstr_fd("minishell: ", 2);
+				ft_putstr_fd("minishell: ", 1);
 				ft_putstr_fd(command_args_string[0], 2);
 				ft_putstr_fd(": command not found\n", 2);
 				status = 127;
