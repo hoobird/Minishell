@@ -246,7 +246,7 @@ void	execution(t_command_args **command_args, char ***envpc)
 	int		status;
 	int		last_status;
 
-	status = -999;
+	status = 0;
 	last_status = -999;
 	i = 0;
 	while (command_args[i])
@@ -294,7 +294,7 @@ void	execution(t_command_args **command_args, char ***envpc)
 			close(command_args[i]->writefd);
 		if (command_args[i]->readfd != STDIN_FILENO)
 			close(command_args[i]->readfd);
-		if (command_args[i+1] == NULL)
+		if (command_args[i+1] == NULL && command_type != EXECUTABLE)
 			last_status = status;
 		i++;
 	}
