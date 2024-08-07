@@ -15,6 +15,7 @@ int		count_commands_args(t_token *tokens)
 	}
 	return (count);
 }
+
 char	**command_args_extraction(t_token *tokens)
 {
 	char	**output;
@@ -96,6 +97,8 @@ int	check_executable(char **envpc, char **command_args)
 {
 	if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
 		return (EXECUTABLE);
+	if (ft_strchr(command_args[0], '/') == NULL) // if no path
+		return (NOT_FOUND);
 	if (check_file_permissions(command_args[0], F_OK) == 0) // file not found
 		return (NO_SUCH_FILE_OR_DIRECTORY);
 	if (check_file_type(command_args[0]) == 2) // directory
