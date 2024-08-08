@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/07 23:05:50 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/08 17:25:54 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 # define MINISHELL_H
 
 # define PROMPT "minishell>> "
+
+extern int g_received_signal;
 
 // For printf, perror
 #include <stdio.h>        

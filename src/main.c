@@ -1,5 +1,7 @@
 #include "minishell.h"
 
+int g_received_signal = 0;
+
 void	freecommandlist(t_command_args ***command_args_list)
 {
 	int i;
@@ -14,6 +16,20 @@ void	freecommandlist(t_command_args ***command_args_list)
 	free(*command_args_list);
 	*command_args_list = NULL;
 }
+
+void	handle_readline(int sig)
+{
+	g_received_signal = sig;
+	if (sig == SIGINT)
+	{
+		ft_putstr_fd("\n", 2);
+		rl_replace_line("", 0); // clear the line
+		rl_on_new_line(); // move cursor to the beginning of the line
+		rl_redisplay(); // redisplay the line
+	}
+}
+
+	
 
 // cc main.c builtin_cd_pwd.c  builtin_echo.c builtin_exit.c  execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var.c check_file_status.c -lreadline ../Libft/libft.a -g
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp ./a.out
@@ -33,11 +49,20 @@ int main(int argc, char *argv[], char *envp[])
 	while (1)
 	{
 		buffer = NULL;
+
+		signal(SIGINT, handle_readline); // ctrl + c
+		signal(SIGQUIT, SIG_IGN); // ctrl + slash
+		// ft_putstr_fd("huh\n", 1);
 		buffer = readline(PROMPT);
-		if (!buffer)
+		if (buffer == NULL)
+		{
+			ft_putstr_fd("exit\n", 2);
 			break ;
+		}
 		if (ft_strlen(buffer) > 0)
 			add_history(buffer);
+		if (g_received_signal == SIGINT)
+			envpc_add(&envpc, "?", "130");
 		// parse input
 		tokenlistlist = parse_input(buffer, envpc);
 		// print_tokenlistlist(tokenlistlist);
@@ -60,6 +85,7 @@ int main(int argc, char *argv[], char *envp[])
 
 		freecommandlist(&command_args_list);
 		free(buffer);
+		g_received_signal = 0;
 	}
 	envpc_free(&envpc);
 	return (0);

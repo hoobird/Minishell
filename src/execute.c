@@ -303,7 +303,6 @@ void	execution(t_command_args **command_args, char ***envpc)
 			}
 			else if (command_type == NOT_FOUND)
 			{
-				ft_putstr_fd("minishell: ", 1);
 				ft_putstr_fd(command_args_string[0], 2);
 				ft_putstr_fd(": command not found\n", 2);
 				status = 127;
