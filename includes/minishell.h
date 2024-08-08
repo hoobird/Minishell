@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/08 17:25:54 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/08 22:39:49 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,7 @@ void	perform_redirection(t_command_args **command_args);
 // execute.c
 void	execution(t_command_args **command_args, char ***envpc);
 void	free_command_args(t_command_args **command_args);
+int		command_args_len(t_command_args **command_args); // used in redirection also
 
 // check_file_status.c
 int	check_file_type(char *path);

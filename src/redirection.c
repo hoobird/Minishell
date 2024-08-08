@@ -20,6 +20,125 @@
 
 #include "minishell.h"
 
+typedef struct s_redirection
+{
+	t_token	*token;
+	int		fd;
+}			t_redirection;
+
+int		command_args_count_redirections(t_command_args **command_args)
+{
+	int		i;
+	int		count;
+	t_token	*tokens;
+
+	i = 0;
+	count = 0;
+	while (command_args[i])
+	{
+		tokens = command_args[i]->tokenlist;
+		while (tokens)
+		{
+			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND || tokens->type == RE_INPUT || tokens->type == RE_HEREDOC)
+				count++;
+			tokens = tokens->next;
+		}
+		i++;
+	}
+	return (count);
+}
+
+t_redirection	*create_redirection_list(t_command_args **command_args, int len)
+{
+	t_redirection	*output;
+	int				i;
+	int				j;
+
+	output = ft_calloc(len + 1, sizeof(t_redirection));
+	i = 0;
+	j = 0;
+	while (command_args[i])
+	{
+		if (output[j].token->type == RE_OUTPUT || output[j].token->type == RE_APPEND)
+		{
+			output[j].token = command_args[i]->tokenlist;
+			output[j].fd = command_args[i]->writefd;
+			j++;
+		}
+		else if (output[j].token->type == RE_INPUT || output[j].token->type == RE_HEREDOC)
+		{
+			output[j].token = command_args[i]->tokenlist;
+			output[j].fd = command_args[i]->readfd;
+			j++;
+		}
+		i++;
+	}
+	return (output);
+}
+
+void	free_redirection_list(t_redirection **redirection_list)
+{
+	free(*redirection_list);
+	*redirection_list = NULL;
+}
+
+int	redirect_heredoc(char *eof)
+{
+	char	*line;
+	int		pipes[2];
+
+	pipe(pipes);
+	if (fork() == 0)
+	{
+		line = readline("> ");
+		while (line)
+		{
+			if (ft_strncmp(line, eof, ft_strlen(eof)) == 0)
+				break ;
+			ft_putstr_fd(line, pipes[1]);
+			printf("line = %s\n", line);
+			ft_putstr_fd("\n", pipes[1]);
+			free(line);
+			line = readline("> ");
+		}
+		free(line);
+		close(pipes[1]);
+		close(pipes[0]);
+		exit(0);
+	}
+	wait(NULL);
+	close(pipes[1]);
+	return (pipes[0]);
+}
+
+void	perform_heredoc(t_redirection *redirection_list)
+{
+	int		i;
+	int		actual_readfd;
+
+	i = 0;
+	while (redirection_list[i].token)
+	{
+	}
+}	
+
+void	perform_redirection(t_command_args **command_args)
+{
+	t_redirection	*redirection_list;
+	int				len;
+
+	len = command_args_count_redirections(command_args);
+	if (len == 0)
+		return ;
+	redirection_list = create_redirection_list(command_args, len);
+	// perform redirections
+	perform_heredoc(redirection_list);
+
+	free_redirection_list(&redirection_list);
+}
+
+
+
 // redirection <
 void	redirect_input(int *fdRead, int fd2)
 {
@@ -56,6 +175,10 @@ int	redirect_heredoc(char *eof)
 	return (pipes[0]);
 }
 
+void	handle_heredoc(int signal)
+{
+	g_received_signal = signal;
+}
 
 void	perform_heredoc_first(t_command_args **command_args)
 {
@@ -63,24 +186,32 @@ void	perform_heredoc_first(t_command_args **command_args)
 	t_token	*tokens;
 	int		actual_readfd;
 
-	i = 0;
-	while (command_args[i])
+	if (fork() == 0)
 	{
-		tokens = command_args[i]->tokenlist;
-		actual_readfd = command_args[i]->readfd;
-		while (tokens)
+		signal(SIGINT, handle_heredoc);
+		signal(SIGQUIT, handle_heredoc);
+		i = 0;
+		while (command_args[i])
 		{
-			if (tokens->type == RE_HEREDOC)
+			tokens = command_args[i]->tokenlist;
+			actual_readfd = command_args[i]->readfd;
+			while (tokens)
 			{
-				if (actual_readfd != 0)
-					close(actual_readfd);
-				actual_readfd = redirect_heredoc(tokens->string);
+				if (tokens->type == RE_HEREDOC)
+				{
+					if (actual_readfd != 0)
+						close(actual_readfd);
+					actual_readfd = redirect_heredoc(tokens->string);
+				}
+				tokens = tokens->next;
 			}
-			tokens = tokens->next;
+			command_args[i]->readfd = actual_readfd;
+			i++;
 		}
-		command_args[i]->readfd = actual_readfd;
-		i++;
+		exit(0);
+		fd_putstr_fd("heredoc child did not die\n", 2);
 	}
+
 }
 
 // redirection >  be 41
