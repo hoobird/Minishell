@@ -83,7 +83,7 @@ void    generate_pipes(t_command_args **command_args_list, int no_pipes)
         pipefd[i] = ft_calloc(sizeof(int), 2);
         if (!pipefd[i])
         {
-            printerror("Generate pipes failed\n");
+            printerror("Generate pipes (Calloc error) failed\n");
             return ;
         }
         if (pipe(pipefd[i]) == -1)
@@ -107,14 +107,14 @@ void    generate_pipes(t_command_args **command_args_list, int no_pipes)
 t_command_args	**upgrade_struct_generate_pipes(t_token **tokenlistlist)
 {
     t_command_args  **output;
-    int        no_pipes;
+    int        no_of_pipes;
 
     output = upgrade_struct_to_list(tokenlistlist);
     if (!output)
         return (NULL);
-    no_pipes = tokenlistlist_len(tokenlistlist) - 1;
-    if (no_pipes > 0)
-        generate_pipes(output, no_pipes);
+    no_of_pipes = tokenlistlist_len(tokenlistlist) - 1;
+    if (no_of_pipes > 0)
+        generate_pipes(output, no_of_pipes);
     return (output);
 }
 

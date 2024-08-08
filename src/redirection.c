@@ -107,8 +107,7 @@ void	perform_redirection(t_command_args **command_args)
 		while (tokens)
 		{
 			// check permission first
-			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND)
-				// > and >> need write permission
+			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND) // > and >> need write permission
 			{
 				if (check_file_permissions(tokens->string, F_OK) == 1)
 					result = check_file_permissions(tokens->string, W_OK);
@@ -118,35 +117,46 @@ void	perform_redirection(t_command_args **command_args)
 				if (check_file_permissions(tokens->string, F_OK) == 1 && check_file_type(tokens->string) == 1)
 					result = check_file_permissions(tokens->string, R_OK);
 				else
-					result = 3; // file does not exist
-				
+					result = 2; // file does not exist
+				// printf("result = %d\n", result);
 			}
 			else if (tokens->type != RE_HEREDOC)
 			{
 				tokens = tokens->next;
 				continue ;
 			}
-			if (result == 0 || result == 3) // permission denied or file does not exist
+			if (result == 0 || result == 2) // permission denied or file does not exist
 			{
-				command_args[i]->cancelexec = result %2; // cancel execution once redirection fails
+				command_args[i]->cancelexec = (result + 1) % 2; // cancel execution once redirection fails
 				ft_putstr_fd("minishell: ", 2);
 				ft_putstr_fd(tokens->string, 2);
 				if (result == 0)
 					ft_putstr_fd(": Permission denied\n", 2);
-				else if (result == 3)
+				else if (result == 2)
 					ft_putstr_fd(": No such file or directory\n", 2);
 				break ;
 			}
 
 			// perform redirection
 			if (tokens->type == RE_OUTPUT)
-				redirect_output(&(command_args[i]->writefd),
-					open(tokens->string, O_WRONLY | O_CREAT | O_TRUNC, 0644));
+			{
+				result = open(tokens->string, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				redirect_output(&(command_args[i]->writefd), result);
+			}
 			else if (tokens->type == RE_APPEND)
-				redirect_output(&(command_args[i]->writefd),
-					open(tokens->string, O_WRONLY | O_APPEND | O_CREAT, 0644));
+			{
+				result = open(tokens->string, O_WRONLY | O_APPEND | O_CREAT, 0644);
+				redirect_output(&(command_args[i]->writefd), result);
+			}
 			else if (tokens->type == RE_INPUT)
 				redirect_input(&(command_args[i]->readfd), open(tokens->string, O_RDONLY));
+			if (result < 0)
+			{
+				ft_putstr_fd("minishell: ", 2);
+				ft_putstr_fd(tokens->string, 2);
+				ft_putstr_fd(": No such file or directory\n", 2);
+				break;
+			}
 			tokens = tokens->next;
 		}
 		i++;

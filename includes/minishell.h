@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/07/31 23:37:46 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/07 23:05:50 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,9 @@ typedef enum	e_command_type
 	BUILTIN_ENV = 96,
 	BUILTIN_EXIT = 97,
 	EXECUTABLE = 98,
+	DIRECTORY = 981,
+	PERMISSION_DENIED = 982,
+	NO_SUCH_FILE_OR_DIRECTORY = 983,
 	NOT_FOUND = 99,
 }				t_command_type;
 

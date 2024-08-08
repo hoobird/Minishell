@@ -113,17 +113,17 @@ int	builtin_cd(char **arg, char ***envpc)
 				ft_putstr_fd(dst_dir, 2);
 				if (access(dst_dir, F_OK) == -1)
 				{
-					ft_putstr_fd(" no such file or directory\n", 2);			
+					ft_putstr_fd(": No such file or directory\n", 2);			
 					return (1);
 				}
 				else if (access(dst_dir, R_OK) == -1)
 				{
-					ft_putstr_fd(" permission denied\n", 2);
+					ft_putstr_fd(": permission denied\n", 2);
 					return (1);
 				}
 				else
 				{
-					ft_putstr_fd(" not a directory\n", 2);
+					ft_putstr_fd(": not a directory\n", 2);
 					return (1);
 				}
 			}
@@ -148,17 +148,17 @@ int	builtin_cd(char **arg, char ***envpc)
 			ft_putstr_fd(dst_dir, 2);
 			if (access(dst_dir, F_OK) == -1)
 			{
-				ft_putstr_fd(" no such file or directory\n", 2);			
+				ft_putstr_fd(": No such file or directory\n", 2);			
 				return (1);
 			}
 		    else if (access(dst_dir, R_OK) == -1)
 		    {
-				ft_putstr_fd(" permission denied\n", 2);
+				ft_putstr_fd(": permission denied\n", 2);
 		    	return (1);
 		    }
 		    else
 		    {
-				ft_putstr_fd(" not a directory\n", 2);
+				ft_putstr_fd(": not a directory\n", 2);
 				return (1);
 		    }
 		}

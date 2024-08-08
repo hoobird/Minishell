@@ -15,6 +15,7 @@ int		count_commands_args(t_token *tokens)
 	}
 	return (count);
 }
+
 char	**command_args_extraction(t_token *tokens)
 {
 	char	**output;
@@ -61,7 +62,7 @@ void	path_list_free(char **path_list)
 	free(path_list);
 }
 
-int	check_executable(char	**envpc, char **command_args)
+int	check_executable_in_path(char **envpc, char **command_args)
 {
 	char	*paths;
 	char	**path_list;
@@ -69,33 +70,46 @@ int	check_executable(char	**envpc, char **command_args)
 	char	*binary_path;
 
 	paths = envpc_get_value(envpc, "PATH");
-	if (paths == NULL)
+	if (paths != NULL) // if PATH exists
 	{
-		ft_putstr_fd("minishell: ", 2);
-		ft_putstr_fd(command_args[0], 2);
-		ft_putstr_fd(": No such file or directory\n", 2);
-		return (NOT_FOUND);
-	}
-	path_list = ft_split(paths, ':');
-	i = 0;
-	while (path_list[i])
-	{
-		paths = ft_strjoin(path_list[i], "/");
-		binary_path = ft_strjoin(paths, command_args[0]);
-		free(paths);
-		if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1) // a file and can execute
+		path_list = ft_split(paths, ':');
+		i = 0;
+		while (path_list[i])
 		{
-			path_list_free(path_list);
-			*command_args = binary_path;
-			return (EXECUTABLE);
+			paths = ft_strjoin(path_list[i], "/");
+			binary_path = ft_strjoin(paths, command_args[0]);
+			free(paths);
+			if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
+			{
+				path_list_free(path_list);
+				*command_args = binary_path;
+				return (EXECUTABLE);
+			}
+			free(binary_path);
+			i++;
 		}
-		free(binary_path);
-		i++;
+		path_list_free(path_list);
 	}
-	ft_putstr_fd("minishell: ", 2);
-	ft_putstr_fd(command_args[0], 2);
-	ft_putstr_fd(": command not found\n", 2);
-	path_list_free(path_list);
+	return (NOT_FOUND);
+}
+
+int	check_executable(char **envpc, char **command_args)
+{
+	if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
+		return (EXECUTABLE);
+	if (ft_strchr(command_args[0], '/') == NULL) // if no path
+		return (NOT_FOUND);
+	if (check_file_permissions(command_args[0], F_OK) == 0) // file not found
+		return (NO_SUCH_FILE_OR_DIRECTORY);
+	if (check_file_type(command_args[0]) == 2) // directory
+		return (DIRECTORY);
+	if (check_file_type(command_args[0]) == 1) // file
+	{
+		if (check_file_permissions(command_args[0], X_OK) == 1) // executable
+			return (EXECUTABLE);
+		else // no permission
+			return (PERMISSION_DENIED);
+	}
 	return (NOT_FOUND);
 }
 
@@ -153,6 +167,31 @@ int	run_builtin(char ***envpc, char **command_args_string)
 	return (outcome);
 }
 
+int		run_in_parent(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+{
+	int		outcome;
+	int		actual_readfd;
+	int		actual_writefd;
+
+	actual_readfd = dup(STDIN_FILENO);
+	actual_writefd = dup(STDOUT_FILENO);
+	if (command_args[index]->writefd != STDOUT_FILENO)
+		dup2(command_args[index]->writefd, STDOUT_FILENO);
+	if (command_args[index]->readfd != STDIN_FILENO)
+		dup2(command_args[index]->readfd, STDIN_FILENO);
+	outcome = run_builtin(envpc, command_args_string);
+	// close all pipes
+	if (command_args[index]->writefd != STDOUT_FILENO)
+		close(command_args[index]->writefd);
+	if (command_args[index]->readfd != STDIN_FILENO)
+		close(command_args[index]->readfd);
+	dup2(actual_readfd, STDIN_FILENO);
+	dup2(actual_writefd, STDOUT_FILENO);
+	close(actual_readfd);
+	close(actual_writefd);
+	return (outcome);
+}
+
 void	run_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
 {
 	int	i;
@@ -167,9 +206,9 @@ void	run_in_child(t_command_args **command_args, int index, char ***envpc, char 
 		i = 0;
 		while (command_args[i])
 		{
-			if (command_args[i + 1] != NULL)
+			if (command_args[i]->writefd != STDOUT_FILENO)
 				close(command_args[i]->writefd);
-			if (i != 0)
+			if (command_args[i]->readfd != STDIN_FILENO)
 				close(command_args[i]->readfd);
 			i++;
 		}
@@ -193,9 +232,9 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 		i = 0;
 		while (command_args[i])
 		{
-			if (command_args[i + 1] != NULL)
+			if (command_args[i]->writefd != STDOUT_FILENO)
 				close(command_args[i]->writefd);
-			if (i != 0)
+			if (command_args[i]->readfd != STDIN_FILENO)
 				close(command_args[i]->readfd);
 			i++;
 		}
@@ -208,7 +247,11 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 
 void	exit_child(int status)
 {
-	builtin_exit(status);
+	pid_t pid;
+
+	pid = fork();
+	if (pid == 0)
+		builtin_exit(status);
 }
 
 void	execution(t_command_args **command_args, char ***envpc)
@@ -217,12 +260,14 @@ void	execution(t_command_args **command_args, char ***envpc)
 	char	**command_args_string;
 	int		command_type;
 	int		status;
-	int		builtin_parent_status;
+	int		last_status;
 
-	builtin_parent_status = -999;
+	last_status = -999;
 	i = 0;
 	while (command_args[i])
 	{
+		status = 0;	
+		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
 		if (command_args[i]->cancelexec == 0)
 		{
 			command_args_string = command_args_extraction(command_args[i]->tokenlist);
@@ -231,8 +276,9 @@ void	execution(t_command_args **command_args, char ***envpc)
 			{
 				// execute builtin
 				if (command_args_len(command_args) == 1) // no pipes so run in parent
-					builtin_parent_status = run_builtin(envpc, command_args_string);
-					// run_builtin(envpc, command_args_string);
+				{
+					status = run_in_parent(command_args, i, envpc, command_args_string);
+				}
 				else // pipes avail then run in child
 					run_in_child(command_args, i, envpc, command_args_string);
 			}
@@ -241,24 +287,53 @@ void	execution(t_command_args **command_args, char ***envpc)
 				execute_in_child(command_args, i, envpc, command_args_string);
 				free(command_args_string[0]);
 			}
-			else
-				exit_child(127);
+			else if (command_type == DIRECTORY)
+			{
+				ft_putstr_fd("minishell: ", 1);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": Is a directory\n", 2);
+				status = 126;
+			}
+			else if (command_type == PERMISSION_DENIED)
+			{
+				ft_putstr_fd("minishell: ", 1);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": Permission denied\n", 2);
+				status = 126;
+			}
+			else if (command_type == NOT_FOUND)
+			{
+				ft_putstr_fd("minishell: ", 1);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": command not found\n", 2);
+				status = 127;
+			}
+			else if (command_type == NO_SUCH_FILE_OR_DIRECTORY)
+			{
+				ft_putstr_fd("minishell: ", 1);
+				ft_putstr_fd(command_args_string[0], 2);
+				ft_putstr_fd(": No such file or directory\n", 2);
+				status = 127;
+			}
+			free(command_args_string);
 		}
 		else
-			exit_child(command_args[i]->cancelexec % 2);
+			status = command_args[i]->cancelexec % 2;
 		// close all the pipes used
-		if (command_args[i + 1] != NULL)
+		if (command_args[i]->writefd != STDOUT_FILENO)
 			close(command_args[i]->writefd);
-		if (i != 0)
+		if (command_args[i]->readfd != STDIN_FILENO)
 			close(command_args[i]->readfd);
-		free(command_args_string);
+		if (command_args[i+1] == NULL && command_type != EXECUTABLE)
+			last_status = status;
 		i++;
 	}
 	while (waitpid(-1, &status, 0) > 0)
 		;
 	envpc_add(envpc, "?", ft_itoa(WEXITSTATUS(status)));
-	if (builtin_parent_status != -999)
-		envpc_add(envpc, "?", ft_itoa(builtin_parent_status));
+	if (last_status != -999)
+		envpc_add(envpc, "?", ft_itoa(last_status));
+	// printf("last_status = %d\n", last_status);
 }
 
 

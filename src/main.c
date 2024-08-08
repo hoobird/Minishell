@@ -54,7 +54,7 @@ int main(int argc, char *argv[], char *envp[])
 		// printcommandlist(command_args_list);
 		// then handle redirections
 		perform_redirection(command_args_list);
-
+		// printcommandlist(command_args_list);
 		// then execution
 		execution(command_args_list, &envpc);
 

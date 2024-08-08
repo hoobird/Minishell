@@ -1,25 +1,19 @@
-#include "../libft.h"
-#include "../minishell.h"
+#include "includes/minishell.h"
+#include "includes/libft.h"
 
 
-int	main(int argc, char **argv, char **envp)
+// main method to test if ft_split works with basic string
+// hello=123 into hello and 123
+
+int main()
 {
-	char	**envpc;
-	char	*paths;
-	char	**pathlist;
-	int		i;
-	char	*kvpair = NULL;
-
-	// envpc = NULL;
-	// envpc_print(envpc);
-	// paths = envpc_get_value(envpc, "PATH");
-	// pathlist = ft_split(kvpair, '=');
-	// i = 0;
-	// while (pathlist[i])
-	// {
-	// 	printf("%s\n", pathlist[i]);
-	// 	i++;
-	// }
-	// envpc_free(&envpc);
-	printf("%s\n", ft_strjoin("hello", ""));
+	char *str = "=";
+	char **split = ft_split(str, '=');
+	int i = 0;
+	while (split[i])
+	{
+		printf("%s\n", split[i]);
+		i++;
+	}
+	return (0);
 }
