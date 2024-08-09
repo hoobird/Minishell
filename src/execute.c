@@ -162,7 +162,7 @@ int	run_builtin(char ***envpc, char **command_args_string)
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_ENV)
 		outcome = builtin_env(command_args_string, envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXIT)
-		builtin_exit_string(command_args_string);
+		builtin_exit_string(command_args_string, envpc);
 	// exit_child(outcome);
 	return (outcome);
 }

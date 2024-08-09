@@ -29,6 +29,6 @@ int		builtin_echo(char **args);
 
 // builtin_exit.c
 void	builtin_exit(int status);
-void	builtin_exit_string(char **status);
+void	builtin_exit_string(char **status, char ***envpc);
 
 # endif
