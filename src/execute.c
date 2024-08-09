@@ -1,6 +1,5 @@
 #include "minishell.h"
 
-void	exit_child(int status);
 
 int		count_commands_args(t_token *tokens)
 {
@@ -134,8 +133,9 @@ int	check_command_type(char	**envpc, char **command_args)
 
 int		command_args_len(t_command_args **command_args)
 {
-	int	i = 0;
+	int	i;
 
+	i = 0;
 	if (command_args)
 	{
 		while (command_args[i])
@@ -163,7 +163,6 @@ int	run_builtin(char ***envpc, char **command_args_string)
 		outcome = builtin_env(command_args_string, envpc);
 	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXIT)
 		builtin_exit_string(command_args_string, envpc);
-	// exit_child(outcome);
 	return (outcome);
 }
 
@@ -240,18 +239,24 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 		}
 		// execute command
 		execve(command_args_string[0], command_args_string, *envpc);
-		printerror("minishell: command not found\n");
+		printerror("execve failed\n");
 		builtin_exit(127);
 	}
 }
 
-void	exit_child(int status)
+void	update_question_mark(char ***envpc, int status, int last_status)
 {
-	pid_t pid;
+	char	*exitstring;
 
-	pid = fork();
-	if (pid == 0)
-		builtin_exit(status);
+	exitstring = ft_itoa(WEXITSTATUS(status));
+	envpc_add(envpc, "?", exitstring);
+	free(exitstring);
+	if (last_status != -999)
+	{
+		exitstring = ft_itoa(last_status);
+		envpc_add(envpc, "?", exitstring);
+		free(exitstring);
+	}
 }
 
 void	execution(t_command_args **command_args, char ***envpc)
@@ -324,15 +329,14 @@ void	execution(t_command_args **command_args, char ***envpc)
 		if (command_args[i]->readfd != STDIN_FILENO)
 			close(command_args[i]->readfd);
 		if (command_args[i+1] == NULL && command_type != EXECUTABLE)
+		{
 			last_status = status;
+		}
 		i++;
 	}
 	while (waitpid(-1, &status, 0) > 0)
 		;
-	envpc_add(envpc, "?", ft_itoa(WEXITSTATUS(status)));
-	if (last_status != -999)
-		envpc_add(envpc, "?", ft_itoa(last_status));
-	// printf("last_status = %d\n", last_status);
+	update_question_mark(envpc, status, last_status);
 }
 
 

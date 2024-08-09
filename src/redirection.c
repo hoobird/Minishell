@@ -156,13 +156,14 @@ int	handle_output_append(t_redirection *redir)
 	int		status;
 
 	status = 1;
-	if (check_file_permissions(redir->fileeof, F_OK) == 0)
-		status = 2;
-	if (check_file_type(redir->fileeof) == 2)
-		status = 4;
-	if (check_file_permissions(redir->fileeof, W_OK) == 0)
-		status = 0;
-	if (status == 1)
+	if (check_file_permissions(redir->fileeof, F_OK) == 1)
+	{
+		if (check_file_type(redir->fileeof) == 2)
+			return (4);
+		if (check_file_permissions(redir->fileeof, W_OK) == 0)
+			return (0);
+	}
+	else
 	{
 		if (redir->type == RE_OUTPUT)
 			redir->fd = open(redir->fileeof, O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -251,7 +252,7 @@ void	assignreadwritefd(t_command_args **command_args, t_redirection **redirectio
 			}
 			if (redirectionlist[i][j].type == RE_OUTPUT || redirectionlist[i][j].type == RE_APPEND)
 				command_args[i]->writefd = redirectionlist[i][j].fd;
-			else if (redirectionlist[i][j].type == RE_INPUT)
+			else if (redirectionlist[i][j].type == RE_INPUT || redirectionlist[i][j].type == RE_HEREDOC)
 				command_args[i]->readfd = redirectionlist[i][j].fd;
 			j++;
 		}
