@@ -15,7 +15,7 @@ void	builtin_exit(int status)
 	exit(status);
 }
 
-void	builtin_exit_string(char **status)
+void	builtin_exit_string(char **status, char ***envpc)
 {
 	int	i;
 
@@ -26,6 +26,8 @@ void	builtin_exit_string(char **status)
 		ft_putstr_fd("minishell: exit: too many arguments\n",2);
 		builtin_exit(1);
 	}
+	if (args_length(status) == 1)
+		builtin_exit(ft_atoi(envpc_get_value(*envpc, "?")));
 	if (status[1][0] == '-' || status[1][0] == '+')
 		i++;
 	while (status[1][i])

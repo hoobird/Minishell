@@ -56,7 +56,7 @@ int main(int argc, char *argv[], char *envp[])
 		buffer = readline(PROMPT);
 		if (buffer == NULL)
 		{
-			ft_putstr_fd("exit\n", 2);
+			ft_putstr_fd("exit\n", 1);
 			break ;
 		}
 		if (ft_strlen(buffer) > 0)
