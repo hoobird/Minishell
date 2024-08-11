@@ -89,7 +89,7 @@ minishell> cat << EOF
 This is a line
 ```
 
-### Piping
+- **Piping**
 
 ```bash
 minishell> echo "Hello, World!" | grep "World"
