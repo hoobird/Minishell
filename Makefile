@@ -37,7 +37,7 @@ valgrindlite : debug
 	valgrind --leak-check=full --show-leak-kinds=all --suppressions=./readline.supp --track-origins=yes ./$(NAME)
 
 $(NAME): $(LIBFT_A) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -lreadline -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -lreadline -o $(NAME) -g
 
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	@mkdir -p $(OBJDIR)

@@ -101,10 +101,12 @@ int	redirect_heredoc(char *eof)
 	int		pipes[2];
 	pid_t	pid;
 
+	signal(SIGINT, SIG_IGN);
 	pipe(pipes);
 	pid = fork();
 	if (pid == 0)
 	{
+		signal(SIGINT, SIG_DFL);
 		line = readline("> ");
 		while (line)
 		{

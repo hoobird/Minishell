@@ -22,9 +22,9 @@ void	handle_readline(int sig)
 	g_received_signal = sig;
 	if (sig == SIGINT)
 	{
-		ft_putstr_fd("\n", 2);
-		rl_replace_line("", 0); // clear the line
+		ft_putstr_fd("\n", 1);
 		rl_on_new_line(); // move cursor to the beginning of the line
+		rl_replace_line("", 0); // clear the line
 		rl_redisplay(); // redisplay the line
 	}
 }
@@ -52,7 +52,6 @@ int main(int argc, char *argv[], char *envp[])
 
 		signal(SIGINT, handle_readline); // ctrl + c
 		signal(SIGQUIT, SIG_IGN); // ctrl + slash
-		// ft_putstr_fd("huh\n", 1);
 		buffer = readline(PROMPT);
 		if (buffer == NULL)
 		{

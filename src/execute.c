@@ -220,9 +220,14 @@ void	run_in_child(t_command_args **command_args, int index, char ***envpc, char 
 void	execute_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
 {
 	int	i;
+	pid_t	pid;
 
-	if (fork() == 0)
+	signal(SIGINT, SIG_IGN);
+	pid = fork();
+	if (pid == 0)
 	{
+		signal(SIGINT, SIG_DFL); // ctrl + c
+		signal(SIGQUIT, SIG_DFL); // ctrl + slash
 		if (command_args[index]->writefd != STDOUT_FILENO)
 			dup2(command_args[index]->writefd, STDOUT_FILENO);
 		if (command_args[index]->readfd != STDIN_FILENO)
@@ -248,7 +253,17 @@ void	update_question_mark(char ***envpc, int status, int last_status)
 {
 	char	*exitstring;
 
-	exitstring = ft_itoa(WEXITSTATUS(status));
+	if (status == 130)
+	{
+		exitstring = ft_itoa(130);
+		ft_putstr_fd("\n", 1);
+	}
+	else if (status == 131)
+	{
+		exitstring = ft_itoa(131);
+		ft_putstr_fd("Quit\n", 1);
+	}
+	exitstring = ft_itoa(status);
 	envpc_add(envpc, "?", exitstring);
 	free(exitstring);
 	if (last_status != -999)
@@ -335,7 +350,12 @@ void	execution(t_command_args **command_args, char ***envpc)
 		i++;
 	}
 	while (waitpid(-1, &status, 0) > 0)
-		;
+	{
+		if (WIFEXITED(status))
+			status = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			status = WTERMSIG(status) + 128;
+	}
 	update_question_mark(envpc, status, last_status);
 }
 
