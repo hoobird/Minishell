@@ -1,6 +1,6 @@
 ############################ Compilation ############################
 CC = cc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -g
 
 
 ############################ File Paths #############################
@@ -37,7 +37,7 @@ valgrindlite : debug
 	valgrind --leak-check=full --show-leak-kinds=all --suppressions=./readline.supp --track-origins=yes ./$(NAME)
 
 $(NAME): $(LIBFT_A) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -lreadline -o $(NAME) -g
+	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -lreadline -o $(NAME)
 
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	@mkdir -p $(OBJDIR)

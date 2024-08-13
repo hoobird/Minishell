@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/09 20:39:20 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/13 19:46:39 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,5 @@ int		command_args_len(t_command_args **command_args); // used in redirection als
 // check_file_status.c
 int	check_file_type(char *path);
 int	check_file_permissions(char *filename, int mode);
-	
 
 # endif

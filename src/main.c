@@ -49,7 +49,6 @@ int main(int argc, char *argv[], char *envp[])
 	while (1)
 	{
 		buffer = NULL;
-
 		signal(SIGINT, handle_readline); // ctrl + c
 		signal(SIGQUIT, SIG_IGN); // ctrl + slash
 		buffer = readline(PROMPT);

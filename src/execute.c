@@ -61,6 +61,20 @@ void	path_list_free(char **path_list)
 	free(path_list);
 }
 
+void	print_char_2d_array(char **array)
+{
+	int i;
+
+	i = 0;
+	while (array[i])
+	{
+		ft_putstr_fd(array[i], 1);
+		ft_putstr_fd("\n", 1);
+		i++;
+	}
+	ft_putstr_fd("\n", 1);
+}
+
 int	check_executable_in_path(char **envpc, char **command_args)
 {
 	char	*paths;
@@ -81,7 +95,7 @@ int	check_executable_in_path(char **envpc, char **command_args)
 			if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
 			{
 				path_list_free(path_list);
-				*command_args = binary_path;
+				command_args[0] = binary_path;
 				return (EXECUTABLE);
 			}
 			free(binary_path);
@@ -94,10 +108,13 @@ int	check_executable_in_path(char **envpc, char **command_args)
 
 int	check_executable(char **envpc, char **command_args)
 {
-	if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
-		return (EXECUTABLE);
 	if (ft_strchr(command_args[0], '/') == NULL) // if no path
-		return (NOT_FOUND);
+	{
+		if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
+			return (EXECUTABLE);
+		else
+			return (NOT_FOUND);
+	}
 	if (check_file_permissions(command_args[0], F_OK) == 0) // file not found
 		return (NO_SUCH_FILE_OR_DIRECTORY);
 	if (check_file_type(command_args[0]) == 2) // directory
@@ -305,7 +322,6 @@ void	execution(t_command_args **command_args, char ***envpc)
 			else  if (command_type == EXECUTABLE)// executable
 			{
 				execute_in_child(command_args, i, envpc, command_args_string);
-				free(command_args_string[0]);
 			}
 			else if (command_type == DIRECTORY)
 			{
