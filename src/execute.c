@@ -304,6 +304,8 @@ void	execution(t_command_args **command_args, char ***envpc)
 	while (command_args[i])
 	{
 		status = 0;	
+		if (count_commands_args(command_args[i]->tokenlist) == 0)
+			command_args[i]->cancelexec = 1;
 		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
 		if (command_args[i]->cancelexec == 0)
 		{

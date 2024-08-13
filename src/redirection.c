@@ -95,9 +95,10 @@ void	free_redirectionlist(t_redirection **redirectionlist)
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-int	redirect_heredoc(char *eof)
+int	redirect_heredoc(char *eof, char ***envpc)
 {
 	char	*line;
+	char	*expanded_line;
 	int		pipes[2];
 	pid_t	pid;
 
@@ -112,8 +113,10 @@ int	redirect_heredoc(char *eof)
 		{
 			if (ft_strncmp(line, eof, ft_strlen(eof)) == 0)
 				break ;
-			ft_putstr_fd(line, pipes[1]);
+			expanded_line = expandshellvar(line, *envpc);
+			ft_putstr_fd(expanded_line, pipes[1]);
 			ft_putstr_fd("\n", pipes[1]);
+			free(expanded_line);
 			free(line);
 			line = readline("> ");
 		}
@@ -126,7 +129,7 @@ int	redirect_heredoc(char *eof)
 	return (pipes[0]);
 }
 
-void	redirect_heredoc_first(t_redirection **redirectionlist)
+void	redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc)
 {
 	int		i;
 	int		j;
@@ -140,7 +143,7 @@ void	redirect_heredoc_first(t_redirection **redirectionlist)
 			if (redirectionlist[i][j].type == RE_HEREDOC)
 			{
 				// perform redirection
-				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof);
+				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof, envpc);
 			}
 			j++;
 		}
@@ -285,13 +288,13 @@ void	closeunusedfd(t_redirection **redirectionlist, t_command_args **command_arg
 	}
 }
 
-void	perform_redirection(t_command_args **command_args)
+void	perform_redirection(t_command_args **command_args, char ***envpc)
 {
 	t_redirection	**redirectionlist;
 
 	redirectionlist = setup_redirectionlist(command_args);
 	// perform redirection
-	redirect_heredoc_first(redirectionlist);
+	redirect_heredoc_first(redirectionlist, envpc);
 	redirect_rest_later(redirectionlist, command_args);
 	assignreadwritefd(command_args, redirectionlist);
 	closeunusedfd(redirectionlist, command_args);

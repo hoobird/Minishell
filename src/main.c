@@ -76,7 +76,7 @@ int main(int argc, char *argv[], char *envp[])
 		free(tokenlistlist);
 		// printcommandlist(command_args_list);
 		// then handle redirections
-		perform_redirection(command_args_list);
+		perform_redirection(command_args_list, &envpc);
 		// printcommandlist(command_args_list);
 		// then execution
 		execution(command_args_list, &envpc);
