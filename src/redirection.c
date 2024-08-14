@@ -217,10 +217,7 @@ void	redirect_rest_later(t_redirection **redirectionlist, t_command_args **comma
 		while (redirectionlist[i][j].type)
 		{
 			if (redirectionlist[i][j].type == RE_OUTPUT || redirectionlist[i][j].type == RE_APPEND)
-			{
 				status = handle_output_append(&redirectionlist[i][j]);
-				printf("status = %d\n", status);
-			}
 			else if (redirectionlist[i][j].type == RE_INPUT)
 				status = handle_input(&redirectionlist[i][j]);
 			if (status == 0 || status == 2 || status == 4)
