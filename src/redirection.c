@@ -163,18 +163,15 @@ int	handle_output_append(t_redirection *redir)
 	status = 1;
 	if (check_file_permissions(redir->fileeof, F_OK) == 1)
 	{
-		if (check_file_type(redir->fileeof) == 2)
+		if (check_file_type(redir->fileeof) == 2) // is a directory ?
 			return (4);
 		if (check_file_permissions(redir->fileeof, W_OK) == 0)
 			return (0);
 	}
-	else
-	{
-		if (redir->type == RE_OUTPUT)
-			redir->fd = open(redir->fileeof, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		else if (redir->type == RE_APPEND)
-			redir->fd = open(redir->fileeof, O_WRONLY | O_APPEND | O_CREAT, 0644);
-	}
+	if (redir->type == RE_OUTPUT)
+		redir->fd = open(redir->fileeof, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	else if (redir->type == RE_APPEND)
+		redir->fd = open(redir->fileeof, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	return (status);
 }
 
@@ -220,7 +217,10 @@ void	redirect_rest_later(t_redirection **redirectionlist, t_command_args **comma
 		while (redirectionlist[i][j].type)
 		{
 			if (redirectionlist[i][j].type == RE_OUTPUT || redirectionlist[i][j].type == RE_APPEND)
+			{
 				status = handle_output_append(&redirectionlist[i][j]);
+				printf("status = %d\n", status);
+			}
 			else if (redirectionlist[i][j].type == RE_INPUT)
 				status = handle_input(&redirectionlist[i][j]);
 			if (status == 0 || status == 2 || status == 4)
