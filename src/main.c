@@ -77,6 +77,14 @@ int main(int argc, char *argv[], char *envp[])
 		// printcommandlist(command_args_list);
 		// then handle redirections
 		perform_redirection(command_args_list, &envpc);
+		if (g_received_signal == SIGINT)
+		{
+			freecommandlist(&command_args_list);
+			free(buffer);
+			envpc_add(&envpc, "?", "130");
+			g_received_signal = 0;
+			continue ;
+		}
 		// printcommandlist(command_args_list);
 		// then execution
 		execution(command_args_list, &envpc);

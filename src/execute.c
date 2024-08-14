@@ -1,6 +1,5 @@
 #include "minishell.h"
 
-
 int		count_commands_args(t_token *tokens)
 {
 	int		count;
@@ -240,6 +239,7 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 	pid_t	pid;
 
 	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
 	pid = fork();
 	if (pid == 0)
 	{

@@ -93,6 +93,12 @@ void	free_redirectionlist(t_redirection **redirectionlist)
 	free(redirectionlist);
 }
 
+void	handle_heredoc(int signal)
+{
+	ft_putchar_fd('\n', 2);
+	exit(signal);
+}
+
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
 int	redirect_heredoc(char *eof, char ***envpc)
@@ -101,31 +107,45 @@ int	redirect_heredoc(char *eof, char ***envpc)
 	char	*expanded_line;
 	int		pipes[2];
 	pid_t	pid;
+	int		status;
 
+	status =0;
 	signal(SIGINT, SIG_IGN);
 	pipe(pipes);
 	pid = fork();
 	if (pid == 0)
 	{
-		signal(SIGINT, SIG_DFL);
-		line = readline("> ");
-		while (line)
+		close(pipes[0]);
+		signal(SIGINT, handle_heredoc);
+		while (1)
 		{
-			if (ft_strncmp(line, eof, ft_strlen(eof)) == 0)
+			line = readline("> ");
+			if (!line || ft_strncmp(line, eof, ft_strlen(eof)) == 0)
+			{
+				if (line)
+					free(line);
+				else
+				{
+					ft_putstr_fd("minishell: warning: here-document delimited by end-of-file (wanted `", 2);
+					ft_putstr_fd(eof, 2);
+					ft_putstr_fd("')\n", 2);
+				}
 				break ;
+			}
 			expanded_line = expandshellvar(line, *envpc);
 			ft_putstr_fd(expanded_line, pipes[1]);
 			ft_putstr_fd("\n", pipes[1]);
 			free(expanded_line);
 			free(line);
-			line = readline("> ");
 		}
 		free(line);
 		close(pipes[1]);
 		exit(0);
 	}
-	waitpid(pid, NULL, 0);
+	waitpid(pid, &status, 0);
 	close(pipes[1]);
+	if (WEXITSTATUS(status) == SIGINT) // means kena sigint
+		g_received_signal = SIGINT;
 	return (pipes[0]);
 }
 
@@ -144,6 +164,11 @@ void	redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc)
 			{
 				// perform redirection
 				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof, envpc);
+				if (g_received_signal == SIGINT)
+				{
+					redirectionlist[i][j].fd = -1;
+					break ;
+				}
 			}
 			j++;
 		}
@@ -292,8 +317,11 @@ void	perform_redirection(t_command_args **command_args, char ***envpc)
 	redirectionlist = setup_redirectionlist(command_args);
 	// perform redirection
 	redirect_heredoc_first(redirectionlist, envpc);
-	redirect_rest_later(redirectionlist, command_args);
-	assignreadwritefd(command_args, redirectionlist);
+	if (g_received_signal != SIGINT)
+	{
+		redirect_rest_later(redirectionlist, command_args);
+		assignreadwritefd(command_args, redirectionlist);
+	}
 	closeunusedfd(redirectionlist, command_args);
 	free_redirectionlist(redirectionlist);
 }
