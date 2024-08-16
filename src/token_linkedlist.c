@@ -218,6 +218,8 @@ char	*get_tokentype(t_tokentype type)
 		return ("RE_INPUT");
 	else if (type == RE_HEREDOC)
 		return ("RE_HEREDOC");
+	else if (type == RE_HEREDOC_QUOTED)
+		return ("RE_HEREDOC_QUOTED");
 	else if (type == PIPE)
 		return ("PIPE");
 	else if (type == COMMAND)

@@ -10,7 +10,7 @@ typedef enum	e_tokentype
 	RE_APPEND = 42,	// redirection >> be 42
 	RE_INPUT = 43,	// redirection <  be 43
 	RE_HEREDOC = 44,	// redirection << be 44
-	RE_HEREDOC_QUOTED = 441,	// redirection with quoted EOF << be 441
+	RE_HEREDOC_QUOTED = 45,	// redirection with quoted EOF << be 45
 	PIPE = 5,
 	COMMAND = 6,
 	ARGS = 7,

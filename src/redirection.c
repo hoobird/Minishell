@@ -36,7 +36,7 @@ int		count_redirection_cmd_args(t_command_args *command_args)
 	tokens = command_args->tokenlist;
 	while (tokens)
 	{
-		if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND || tokens->type == RE_INPUT || tokens->type == RE_HEREDOC)
+		if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND || tokens->type == RE_INPUT || tokens->type == RE_HEREDOC || tokens->type == RE_HEREDOC_QUOTED)
 			count++;
 		tokens = tokens->next;
 	}
@@ -59,7 +59,7 @@ t_redirection	**setup_redirectionlist(t_command_args **command_args)
 		j = 0;
 		while (tokens)
 		{
-			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND || tokens->type == RE_INPUT || tokens->type == RE_HEREDOC)
+			if (tokens->type == RE_OUTPUT || tokens->type == RE_APPEND || tokens->type == RE_INPUT || tokens->type == RE_HEREDOC || tokens->type == RE_HEREDOC_QUOTED)
 			{
 				redirectionlist[i][j].type = tokens->type;
 				redirectionlist[i][j].fileeof = ft_strdup(tokens->string);
@@ -101,7 +101,7 @@ void	handle_heredoc(int signal)
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-int	redirect_heredoc(char *eof, char ***envpc)
+int	redirect_heredoc(char *eof, char ***envpc, t_tokentype type)
 {
 	char	*line;
 	char	*expanded_line;
@@ -132,13 +132,15 @@ int	redirect_heredoc(char *eof, char ***envpc)
 				}
 				break ;
 			}
-			expanded_line = expandshellvar(line, *envpc);
+			if (type == RE_HEREDOC_QUOTED)
+				expanded_line = ft_strdup(line);
+			else
+				expanded_line = expandshellvar(line, *envpc);
 			ft_putstr_fd(expanded_line, pipes[1]);
 			ft_putstr_fd("\n", pipes[1]);
 			free(expanded_line);
 			free(line);
 		}
-		free(line);
 		close(pipes[1]);
 		exit(0);
 	}
@@ -160,10 +162,10 @@ void	redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc)
 		j = 0;
 		while (redirectionlist[i][j].type)
 		{
-			if (redirectionlist[i][j].type == RE_HEREDOC)
+			if (redirectionlist[i][j].type == RE_HEREDOC || redirectionlist[i][j].type == RE_HEREDOC_QUOTED)
 			{
 				// perform redirection
-				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof, envpc);
+				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof, envpc, redirectionlist[i][j].type);
 				if (g_received_signal == SIGINT)
 				{
 					redirectionlist[i][j].fd = -1;
@@ -279,7 +281,7 @@ void	assignreadwritefd(t_command_args **command_args, t_redirection **redirectio
 			}
 			if (redirectionlist[i][j].type == RE_OUTPUT || redirectionlist[i][j].type == RE_APPEND)
 				command_args[i]->writefd = redirectionlist[i][j].fd;
-			else if (redirectionlist[i][j].type == RE_INPUT || redirectionlist[i][j].type == RE_HEREDOC)
+			else if (redirectionlist[i][j].type == RE_INPUT || redirectionlist[i][j].type == RE_HEREDOC || redirectionlist[i][j].type == RE_HEREDOC_QUOTED)
 				command_args[i]->readfd = redirectionlist[i][j].fd;
 			j++;
 		}

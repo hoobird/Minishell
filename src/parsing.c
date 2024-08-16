@@ -235,7 +235,59 @@ int	check_error_redirection_pipe(t_token *token)
 }
 
 //join redirects with file to the right
-t_token	*joinredirects(t_token *token)
+// heredoc... but must continually joins token with postspace = 0 until hits non-WORD, non-SQUOTE, non-DQUOTE, NULL
+t_token	*joinredirects_heredoc(t_token *token)
+{
+	t_token	*newtoken;
+	char	*combined;
+	char	*tmp;
+	int		quoted;
+
+	newtoken = NULL;
+	while (token != NULL)
+	{
+		quoted = 0;
+		if (token->type == RE_HEREDOC)
+		{
+			token = token->next;
+			if (token->type == WORD)
+				combined = ft_strtrim(token->string, " ");
+			else
+			{
+				quoted = 1;
+				combined= ft_strdup(token->string);
+			}
+			while (token->next != NULL && token->postspace == 0 && (token->next->type == WORD || token->next->type == SQUOTE || token->next->type == DQUOTE))
+			{
+				if (token->next->type == WORD)
+					tmp = ft_strtrim(token->next->string, " ");
+				else
+				{
+					quoted = 1;
+					tmp= ft_strdup(token->next->string);
+				}
+				combined = ft_strjoin(token->string, tmp);
+				free(tmp);
+				token = token->next;
+			}
+			ft_putnbr_fd(RE_HEREDOC + quoted, 1);
+			if (quoted == 1)
+				check_then_add_token(&newtoken, combined, RE_HEREDOC_QUOTED, token->postspace);
+			else
+				check_then_add_token(&newtoken, combined, RE_HEREDOC, token->postspace);
+		}
+		else
+		{
+			check_then_add_token(&newtoken, ft_strdup(token->string), token->type, token->postspace);
+		}
+		token = token->next;
+	}
+	return (newtoken);
+}
+
+//join redirects with file to the right
+// for output, append, input (NOT HEREDOC - done earlier)
+t_token	*joinredirects_others(t_token *token)
 {
 	t_token	*newtoken;
 	t_token	*nexttoken;
@@ -245,7 +297,7 @@ t_token	*joinredirects(t_token *token)
 	newtoken = NULL;
 	while (token != NULL)
 	{
-		if (token->type == RE_OUTPUT || token->type == RE_APPEND || token->type == RE_INPUT || token->type == RE_HEREDOC)
+		if (token->type == RE_OUTPUT || token->type == RE_APPEND || token->type == RE_INPUT)
 		{
 			nexttoken = token->next;
 			if (nexttoken->type == WORD)
@@ -265,6 +317,38 @@ t_token	*joinredirects(t_token *token)
 	}
 	return (newtoken);
 }
+
+// //join redirects with file to the right
+// t_token	*joinredirects(t_token *token)
+// {
+// 	t_token	*newtoken;
+// 	t_token	*nexttoken;
+// 	char	*combined;
+// 	char	*tmp;
+
+// 	newtoken = NULL;
+// 	while (token != NULL)
+// 	{
+// 		if (token->type == RE_OUTPUT || token->type == RE_APPEND || token->type == RE_INPUT || token->type == RE_HEREDOC)
+// 		{
+// 			nexttoken = token->next;
+// 			if (nexttoken->type == WORD)
+// 				tmp = ft_strtrim(nexttoken->string, " ");
+// 			else
+// 				tmp= ft_strdup(nexttoken->string);
+// 			combined = ft_strjoin(token->string, tmp);
+// 			free(tmp);
+// 			check_then_add_token(&newtoken, combined, token->type, nexttoken->postspace);
+// 			token = nexttoken;
+// 		}
+// 		else
+// 		{
+// 			check_then_add_token(&newtoken, ft_strdup(token->string), token->type, token->postspace);
+// 		}
+// 		token = token->next;
+// 	}
+// 	return (newtoken);
+// }
 
 // expand shell vars
 t_token	*handle_shellvars(char **envp, t_token *token)
@@ -329,7 +413,7 @@ t_token	*merge_stucktogether_words(t_token *etokens)
 	while (etokens != NULL)
 	{	
 		temp = etokens;
-		if (etokens->type != PIPE)
+		if (etokens->type != PIPE && etokens->postspace == 0)
 		{
 			combined = ft_strdup(etokens->string);
 			while (etokens->next != NULL && etokens->postspace == 0 && (etokens->next->type == WORD || etokens->next->type == SQUOTE || etokens->next->type == DQUOTE))
@@ -474,11 +558,14 @@ t_token	**parse_input_helper(t_token *tokens, char **envp)
 	t_token	**parse_output;
 
 	// STEP 4 - join redirects with file to the right
-	revisedtokens = joinredirects(tokens);
+	revisedtokens = joinredirects_heredoc(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
 	// STEP 5 - handle shell vars
 	revisedtokens = handle_shellvars(envp, tokens);
+	free_tokenlist(&tokens);
+	tokens = revisedtokens;
+	revisedtokens = joinredirects_others(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
 	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
@@ -492,6 +579,33 @@ t_token	**parse_input_helper(t_token *tokens, char **envp)
 	label_commands_args(parse_output);
 	return (parse_output);
 }
+
+// // parse_input_helper 
+// // step 4 onwards
+// t_token	**parse_input_helper(t_token *tokens, char **envp)
+// {
+// 	t_token	*revisedtokens;
+// 	t_token	**parse_output;
+
+// 	// STEP 4 - join redirects with file to the right
+// 	revisedtokens = joinredirects(tokens);
+// 	free_tokenlist(&tokens);
+// 	tokens = revisedtokens;
+// 	// STEP 5 - handle shell vars
+// 	revisedtokens = handle_shellvars(envp, tokens);
+// 	free_tokenlist(&tokens);
+// 	tokens = revisedtokens;
+// 	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
+// 	revisedtokens = merge_stucktogether_words(tokens);
+// 	free_tokenlist(&tokens);
+// 	tokens = revisedtokens;
+// 	// STEP 8 - split command and args
+// 	parse_output = split_by_pipe(tokens);
+// 	free_tokenlist(&tokens);
+// 	// STEP 9 - label commands and args
+// 	label_commands_args(parse_output);
+// 	return (parse_output);
+// }
 
 /*
 // cc parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c ../Libft/libft.a -g
