@@ -59,10 +59,8 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		if (ft_strlen(buffer) > 0)
 			add_history(buffer);
-		if (g_received_signal == SIGINT)
-			envpc_add(&envpc, "?", "130");
 		// parse input
-		tokenlistlist = parse_input(buffer, envpc);
+		tokenlistlist = parse_input(buffer, &envpc);
 		// print_tokenlistlist(tokenlistlist);
 		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(tokenlistlist))
 		{
@@ -77,21 +75,12 @@ int main(int argc, char *argv[], char *envp[])
 		// printcommandlist(command_args_list);
 		// then handle redirections
 		perform_redirection(command_args_list, &envpc);
-		if (g_received_signal == SIGINT)
-		{
-			freecommandlist(&command_args_list);
-			free(buffer);
-			envpc_add(&envpc, "?", "130");
-			g_received_signal = 0;
-			continue ;
-		}
 		// printcommandlist(command_args_list);
 		// then execution
 		execution(command_args_list, &envpc);
 
 		freecommandlist(&command_args_list);
 		free(buffer);
-		g_received_signal = 0;
 	}
 	envpc_free(&envpc);
 	return (0);

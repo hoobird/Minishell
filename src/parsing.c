@@ -514,12 +514,14 @@ void	label_commands_args(t_token **tokenlistlist)
 }
 
 // the main parsing function
-t_token	**parse_input(char *str, char **envp)
+t_token	**parse_input(char *str, char ***envp)
 {
 	t_token	*tokens;
 	t_token	*revisedtokens;
 	t_token	**parse_output;
 
+	if (g_received_signal == SIGINT)
+		envpc_add(envp, "?", "130");
 	// STEP 1 - handle quotes
 	tokens = process_quotes(str);
 	// Step 1a - Error out when unclosed quotes
@@ -547,12 +549,14 @@ t_token	**parse_input(char *str, char **envp)
 	}
 	// Step 4 - 9 
 	parse_output = parse_input_helper(tokens, envp);
+	envpc_add(envp, "?", "0");
+	g_received_signal = 0;
 	return (parse_output);
 }
 
 // parse_input_helper 
 // step 4 onwards
-t_token	**parse_input_helper(t_token *tokens, char **envp)
+t_token	**parse_input_helper(t_token *tokens, char ***envp)
 {
 	t_token	*revisedtokens;
 	t_token	**parse_output;
@@ -562,7 +566,7 @@ t_token	**parse_input_helper(t_token *tokens, char **envp)
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
 	// STEP 5 - handle shell vars
-	revisedtokens = handle_shellvars(envp, tokens);
+	revisedtokens = handle_shellvars(*envp, tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
 	revisedtokens = joinredirects_others(tokens);

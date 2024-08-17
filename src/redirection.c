@@ -311,6 +311,17 @@ void	closeunusedfd(t_redirection **redirectionlist, t_command_args **command_arg
 		i++;
 	}
 }
+void	cancel_all_exec(t_command_args **command_args)
+{
+	int		i;
+
+	i = 0;
+	while (command_args[i])
+	{
+		command_args[i]->cancelexec = 1;
+		i++;
+	}
+}
 
 void	perform_redirection(t_command_args **command_args, char ***envpc)
 {
@@ -323,6 +334,10 @@ void	perform_redirection(t_command_args **command_args, char ***envpc)
 	{
 		redirect_rest_later(redirectionlist, command_args);
 		assignreadwritefd(command_args, redirectionlist);
+	}
+	else
+	{
+		cancel_all_exec(command_args);
 	}
 	closeunusedfd(redirectionlist, command_args);
 	free_redirectionlist(redirectionlist);

@@ -43,8 +43,8 @@ t_token		*merge_stucktogether_words(t_token *etokens);
 int			count_pipes(t_token *token);
 t_token		**split_by_pipe(t_token *token);
 void		label_commands_args(t_token **tokenlistlist);
-t_token		**parse_input(char *str, char **envp);
-t_token		**parse_input_helper(t_token *tokens, char **envp);
+t_token		**parse_input(char *str, char ***envp);
+t_token		**parse_input_helper(t_token *tokens, char ***envp);
 
 // token_linkedlist.c
 t_token	*init_tokenlist(char *word, t_tokentype type, int spacesafter);
