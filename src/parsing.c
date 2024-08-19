@@ -270,7 +270,6 @@ t_token	*joinredirects_heredoc(t_token *token)
 				free(tmp);
 				token = token->next;
 			}
-			ft_putnbr_fd(RE_HEREDOC + quoted, 1);
 			if (quoted == 1)
 				check_then_add_token(&newtoken, combined, RE_HEREDOC_QUOTED, token->postspace);
 			else

@@ -48,7 +48,7 @@ int main(int argc, char *argv[], char *envp[])
 	envpc_add(&envpc, "?", "0");
 	while (1)
 	{
-		g_received_signal = 0;
+		// g_received_signal = 0;
 		buffer = NULL;
 		signal(SIGINT, handle_readline); // ctrl + c
 		signal(SIGQUIT, SIG_IGN); // ctrl + slash
@@ -60,14 +60,22 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		if (ft_strlen(buffer) > 0)
 			add_history(buffer);
+		else
+		{
+			free(buffer);
+			continue ;
+		}
 		if (g_received_signal == SIGINT) // for ctrl + c 
+		{
 			envpc_add(&envpc, "?", "130");
+			g_received_signal = 0;	
+		}
 		// parse input
 		tokenlistlist = parse_input(buffer, &envpc);
 		// print_tokenlistlist(tokenlistlist);
 		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(tokenlistlist))
 		{
-			printf("tokenlistlist is empty\n");
+			// printf("tokenlistlist is empty\n");
 			envpc_add(&envpc, "?", "0");
 			continue ;
 		}
@@ -78,10 +86,8 @@ int main(int argc, char *argv[], char *envp[])
 		// free(tokenlistlist);
 		// printcommandlist(command_args_list);
 		// then handle redirections
-		perform_redirection(command_args_list, &envpc);
-		if (g_received_signal == SIGINT) // for ctrl + c 
+		if (perform_redirection(command_args_list, &envpc) == 1)
 		{
-			envpc_add(&envpc, "?", "130");
 			freecommandlist(&command_args_list);
 			free(buffer);
 			continue ;

@@ -371,8 +371,6 @@ void	execution(t_command_args **command_args, char ***envpc)
 	{
 		if (WIFEXITED(status))
 		{
-			printf("raw status = %d\n", status);\
-			printf("WEXITSTATUS(status) = %d\n", WEXITSTATUS(status));
 			status = WEXITSTATUS(status);
 		}
 		else if (WIFSIGNALED(status))

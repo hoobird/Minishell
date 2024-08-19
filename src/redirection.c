@@ -323,10 +323,12 @@ void	cancel_all_exec(t_command_args **command_args)
 	}
 }
 
-void	perform_redirection(t_command_args **command_args, char ***envpc)
+int	perform_redirection(t_command_args **command_args, char ***envpc)
 {
 	t_redirection	**redirectionlist;
+	int siginted;
 
+	siginted = 0;
 	redirectionlist = setup_redirectionlist(command_args);
 	// perform redirection
 	redirect_heredoc_first(redirectionlist, envpc);
@@ -339,6 +341,13 @@ void	perform_redirection(t_command_args **command_args, char ***envpc)
 	// 	cancel_all_exec(command_args);
 	closeunusedfd(redirectionlist, command_args);
 	free_redirectionlist(redirectionlist);
+	if (g_received_signal == SIGINT)
+	{
+		siginted = 1;
+		envpc_add(envpc, "?", "130");
+		g_received_signal = 0;
+	}
+	return (siginted);
 }
 
 // // redirection <
