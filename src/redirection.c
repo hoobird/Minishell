@@ -330,15 +330,13 @@ void	perform_redirection(t_command_args **command_args, char ***envpc)
 	redirectionlist = setup_redirectionlist(command_args);
 	// perform redirection
 	redirect_heredoc_first(redirectionlist, envpc);
-	if (g_received_signal != SIGINT)
-	{
-		redirect_rest_later(redirectionlist, command_args);
-		assignreadwritefd(command_args, redirectionlist);
-	}
-	else
-	{
-		cancel_all_exec(command_args);
-	}
+	// if (g_received_signal != SIGINT)
+	// {
+	redirect_rest_later(redirectionlist, command_args);
+	assignreadwritefd(command_args, redirectionlist);
+	// }
+	// else
+	// 	cancel_all_exec(command_args);
 	closeunusedfd(redirectionlist, command_args);
 	free_redirectionlist(redirectionlist);
 }

@@ -370,10 +370,15 @@ void	execution(t_command_args **command_args, char ***envpc)
 	while (waitpid(-1, &status, 0) > 0)
 	{
 		if (WIFEXITED(status))
+		{
+			printf("raw status = %d\n", status);\
+			printf("WEXITSTATUS(status) = %d\n", WEXITSTATUS(status));
 			status = WEXITSTATUS(status);
+		}
 		else if (WIFSIGNALED(status))
 			status = WTERMSIG(status) + 128;
 	}
+	// printf("status = %d\n", status);
 	update_question_mark(envpc, status, last_status);
 }
 

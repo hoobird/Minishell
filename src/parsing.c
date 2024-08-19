@@ -520,8 +520,6 @@ t_token	**parse_input(char *str, char ***envp)
 	t_token	*revisedtokens;
 	t_token	**parse_output;
 
-	if (g_received_signal == SIGINT)
-		envpc_add(envp, "?", "130");
 	// STEP 1 - handle quotes
 	tokens = process_quotes(str);
 	// Step 1a - Error out when unclosed quotes
@@ -549,8 +547,6 @@ t_token	**parse_input(char *str, char ***envp)
 	}
 	// Step 4 - 9 
 	parse_output = parse_input_helper(tokens, envp);
-	envpc_add(envp, "?", "0");
-	g_received_signal = 0;
 	return (parse_output);
 }
 
