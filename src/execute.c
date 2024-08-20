@@ -265,6 +265,7 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 		printerror("execve failed\n");
 		builtin_exit(127);
 	}
+	free(command_args_string[0]);
 }
 
 void	update_question_mark(char ***envpc, int status, int last_status)
