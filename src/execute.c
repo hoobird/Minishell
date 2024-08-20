@@ -356,7 +356,9 @@ void	execution(t_command_args ***command_args, char ***envpc)
 			free(command_args_string);
 		}
 		else
+		{
 			status = (*command_args)[i]->cancelexec % 2;
+		}
 		// close all the pipes used
 		if ((*command_args)[i]->writefd != STDOUT_FILENO)
 		{
@@ -368,7 +370,7 @@ void	execution(t_command_args ***command_args, char ***envpc)
 			close((*command_args)[i]->readfd);
 			(*command_args)[i]->readfd = STDIN_FILENO;
 		}
-		if (command_args[i+1] == NULL && command_type != EXECUTABLE)
+		if ((*command_args)[i+1] == NULL && command_type != EXECUTABLE)
 		{
 			last_status = status;
 		}
@@ -383,8 +385,6 @@ void	execution(t_command_args ***command_args, char ***envpc)
 		else if (WIFSIGNALED(status))
 			status = WTERMSIG(status) + 128;
 	}
-	printf("status = %d\n", status);
-	printf("last_status = %d\n", last_status);
 	update_question_mark(envpc, status, last_status);
 }
 

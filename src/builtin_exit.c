@@ -32,7 +32,7 @@ void	close_all_fds(t_command_args **command_args)
 
 void	free_everything_exe(char ***status, char ***envpc, t_command_args ***command_args, int* fds)
 {
-	if (fds)
+	if (fds != NULL)
 	{
 		close(fds[0]);
 		close(fds[1]);
