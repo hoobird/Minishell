@@ -83,7 +83,7 @@ int main(int argc, char *argv[], char *envp[])
 		// printf("\n");
 		// next is to create pipes and upgrade t_token ** to t_command_args *
 		command_args_list = upgrade_struct_generate_pipes(tokenlistlist);
-		// free(tokenlistlist);
+		free(tokenlistlist);
 		// printcommandlist(command_args_list);
 		// then handle redirections
 		if (perform_redirection(command_args_list, &envpc) == 1)
@@ -94,7 +94,7 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		// printcommandlist(command_args_list);
 		// then execution
-		execution(command_args_list, &envpc);
+		execution(&command_args_list, &envpc);
 
 		freecommandlist(&command_args_list);
 		free(buffer);
