@@ -93,9 +93,10 @@ int	check_executable_in_path(char **envpc, char **command_args)
 			free(paths);
 			if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
 			{
+				// printf("binary_path = %s\n", binary_path);
 				path_list_free(path_list);
-				command_args[0] = binary_path;
-				return (EXECUTABLE);
+				free(binary_path);
+				return (EXECUTABLE_PATH);
 			}
 			free(binary_path);
 			i++;
@@ -105,12 +106,38 @@ int	check_executable_in_path(char **envpc, char **command_args)
 	return (NOT_FOUND);
 }
 
+char	*get_executable_in_path(char **envpc, char **command_args)
+{
+	char	*paths;
+	char	**path_list;
+	int		i;
+	char	*binary_path;
+
+	paths = envpc_get_value(envpc, "PATH");
+	path_list = ft_split(paths, ':');
+	i = 0;
+	while (path_list[i])
+	{
+		paths = ft_strjoin(path_list[i], "/");
+		binary_path = ft_strjoin(paths, command_args[0]);
+		free(paths);
+		if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
+		{
+			break;
+		}
+		free(binary_path);
+		i++;
+	}
+	path_list_free(path_list);
+	return (binary_path);
+}
+
 int	check_executable(char **envpc, char **command_args)
 {
 	if (ft_strchr(command_args[0], '/') == NULL) // if no path
 	{
-		if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
-			return (EXECUTABLE);
+		if (check_executable_in_path(envpc, command_args) == EXECUTABLE_PATH) // check if in path
+			return (EXECUTABLE_PATH);
 		else
 			return (NOT_FOUND);
 	}
@@ -261,11 +288,14 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 			i++;
 		}
 		// execute command
-		execve(command_args_string[0], command_args_string, *envpc);
+		if (check_command_type(*envpc, command_args_string) == EXECUTABLE_PATH)
+			execve(get_executable_in_path(*envpc, command_args_string), command_args_string, *envpc);
+		else
+			execve(command_args_string[0], command_args_string, *envpc);
 		printerror("execve failed\n");
 		builtin_exit(127);
 	}
-	free(command_args_string[0]);
+	// free(command_args_string[0]);
 }
 
 void	update_question_mark(char ***envpc, int status, int last_status)
@@ -305,7 +335,7 @@ void	execution(t_command_args ***command_args, char ***envpc)
 	i = 0;
 	while ((*command_args)[i])
 	{
-		status = 0;	
+		status = -999;	
 		if (count_commands_args((*command_args)[i]->tokenlist) == 0)
 			(*command_args)[i]->cancelexec = 1;
 		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
@@ -323,7 +353,7 @@ void	execution(t_command_args ***command_args, char ***envpc)
 				else // pipes avail then run in child
 					run_in_child(command_args, i, envpc, &command_args_string);
 			}
-			else  if (command_type == EXECUTABLE)// executable
+			else  if (command_type == EXECUTABLE || command_type == EXECUTABLE_PATH)// executable
 			{
 				execute_in_child((*command_args), i, envpc, command_args_string);
 			}
@@ -371,21 +401,19 @@ void	execution(t_command_args ***command_args, char ***envpc)
 			close((*command_args)[i]->readfd);
 			(*command_args)[i]->readfd = STDIN_FILENO;
 		}
-		if ((*command_args)[i+1] == NULL && command_type != EXECUTABLE)
+		if ((*command_args)[i+1] == NULL && command_type != EXECUTABLE && command_type != EXECUTABLE_PATH)	
 		{
 			last_status = status;
 		}
 		i++;
 	}
 	while (waitpid(-1, &status, 0) > 0)
-	{
-		if (WIFEXITED(status))
-		{
-			status = WEXITSTATUS(status);
-		}
-		else if (WIFSIGNALED(status))
-			status = WTERMSIG(status) + 128;
-	}
+	;
+	i = 0;
+	if (WIFEXITED(status))
+		status = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+		status = WTERMSIG(status) + 128;
 	update_question_mark(envpc, status, last_status);
 }
 

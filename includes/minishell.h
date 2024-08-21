@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/20 16:29:45 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/21 14:24:22 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ t_command_args	**upgrade_struct_generate_pipes(t_token **tokenlistlist);
 void    printcommandlist(t_command_args **command_arg_list);
 
 // redirection.c
-int	perform_redirection(t_command_args **command_args, char ***envpc);
+int	perform_redirection(t_command_args ***command_args, char ***envpc);
 
 // execute.c
 void	execution(t_command_args ***command_args, char ***envpc);

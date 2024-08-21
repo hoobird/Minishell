@@ -77,6 +77,7 @@ void	builtin_exit_string(char ***status, char ***envpc, t_command_args ***comman
 		i++;
 	}
 	i = ft_atoi((*status)[1]);
+	// printf("i: %d\n", i);
 	free_everything_exe(status, envpc, command_args, fds);
 	builtin_exit(i);
 }

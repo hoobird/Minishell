@@ -101,7 +101,8 @@ void	handle_heredoc(int signal)
 
 // HEREDOC <<
 // HEREDOC must run before all other redirections (Based on XF)
-int	redirect_heredoc(char *eof, char ***envpc, t_tokentype type)
+// int	redirect_heredoc(char *eof, char ***envpc, t_tokentype type, t_command_args ***command_args)
+int	redirect_heredoc(t_redirection **redlist, t_redirection red, char ***envpc, t_command_args ***command_args)
 {
 	char	*line;
 	char	*expanded_line;
@@ -120,19 +121,19 @@ int	redirect_heredoc(char *eof, char ***envpc, t_tokentype type)
 		while (1)
 		{
 			line = readline("> ");
-			if (!line || ft_strncmp(line, eof, ft_strlen(eof)) == 0)
+			if (!line || ft_strcmp(line, red.fileeof) == 0)
 			{
 				if (line)
 					free(line);
 				else
 				{
 					ft_putstr_fd("minishell: warning: here-document delimited by end-of-file (wanted `", 2);
-					ft_putstr_fd(eof, 2);
+					ft_putstr_fd(red.fileeof, 2);
 					ft_putstr_fd("')\n", 2);
 				}
 				break ;
 			}
-			if (type == RE_HEREDOC_QUOTED)
+			if (red.type == RE_HEREDOC_QUOTED)
 				expanded_line = ft_strdup(line);
 			else
 				expanded_line = expandshellvar(line, *envpc);
@@ -142,6 +143,9 @@ int	redirect_heredoc(char *eof, char ***envpc, t_tokentype type)
 			free(line);
 		}
 		close(pipes[1]);
+		envpc_free(envpc);
+		free_command_args(*command_args);
+		free_redirectionlist(redlist);
 		exit(0);
 	}
 	waitpid(pid, &status, 0);
@@ -151,7 +155,7 @@ int	redirect_heredoc(char *eof, char ***envpc, t_tokentype type)
 	return (pipes[0]);
 }
 
-void	redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc)
+void	redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc, t_command_args ***command_args)
 {
 	int		i;
 	int		j;
@@ -165,7 +169,8 @@ void	redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc)
 			if (redirectionlist[i][j].type == RE_HEREDOC || redirectionlist[i][j].type == RE_HEREDOC_QUOTED)
 			{
 				// perform redirection
-				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof, envpc, redirectionlist[i][j].type);
+				// redirectionlist[i][j].fd = redirect_heredoc(redirectionlist[i][j].fileeof, envpc, redirectionlist[i][j].type, command_args);
+				redirectionlist[i][j].fd = redirect_heredoc(redirectionlist, redirectionlist[i][j], envpc, command_args);
 				if (g_received_signal == SIGINT)
 				{
 					redirectionlist[i][j].fd = -1;
@@ -323,23 +328,23 @@ void	cancel_all_exec(t_command_args **command_args)
 	}
 }
 
-int	perform_redirection(t_command_args **command_args, char ***envpc)
+int	perform_redirection(t_command_args ***command_args, char ***envpc)
 {
 	t_redirection	**redirectionlist;
 	int siginted;
 
 	siginted = 0;
-	redirectionlist = setup_redirectionlist(command_args);
+	redirectionlist = setup_redirectionlist(*command_args);
 	// perform redirection
-	redirect_heredoc_first(redirectionlist, envpc);
+	redirect_heredoc_first(redirectionlist, envpc, command_args);
 	// if (g_received_signal != SIGINT)
 	// {
-	redirect_rest_later(redirectionlist, command_args);
-	assignreadwritefd(command_args, redirectionlist);
+	redirect_rest_later(redirectionlist, *command_args);
+	assignreadwritefd(*command_args, redirectionlist);
 	// }
 	// else
 	// 	cancel_all_exec(command_args);
-	closeunusedfd(redirectionlist, command_args);
+	closeunusedfd(redirectionlist, *command_args);
 	free_redirectionlist(redirectionlist);
 	if (g_received_signal == SIGINT)
 	{
