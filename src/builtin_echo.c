@@ -4,6 +4,8 @@ int	is_valid_flag_n(char *flag)
 {
 	int	i;
 
+	if (!flag[1])
+		return (0);
 	i = 1;
 	while (flag[i])
 	{

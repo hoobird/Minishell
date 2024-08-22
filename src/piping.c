@@ -59,6 +59,7 @@ t_command_args  **upgrade_struct_to_list(t_token **tokenlistlist)
         output[i]->readfd = STDIN_FILENO;
         output[i]->writefd = STDOUT_FILENO;
         output[i]->cancelexec = 0;
+        output[i]->pid = 0;
         i++;
     }
     return (output);

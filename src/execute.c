@@ -238,8 +238,11 @@ int		run_in_parent(t_command_args ***command_args, int index, char ***envpc, cha
 void	run_in_child(t_command_args ***command_args, int index, char ***envpc, char ***command_args_string)
 {
 	int	i;
+	pid_t	pid;
 
-	if (fork() == 0)
+	pid = fork();
+	(*command_args)[index]->pid = pid;
+	if (pid == 0)
 	{
 		if ((*command_args)[index]->writefd != STDOUT_FILENO)
 			dup2((*command_args)[index]->writefd, STDOUT_FILENO);
@@ -269,6 +272,7 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	pid = fork();
+	command_args[index]->pid = pid;
 	if (pid == 0)
 	{
 		signal(SIGINT, SIG_DFL); // ctrl + c
@@ -312,15 +316,16 @@ void	update_question_mark(char ***envpc, int status, int last_status)
 		exitstring = ft_itoa(131);
 		ft_putstr_fd("Quit\n", 1);
 	}
-	exitstring = ft_itoa(status);
-	envpc_add(envpc, "?", exitstring);
-	free(exitstring);
-	if (last_status != -999)
+	else if (last_status != -999)
 	{
 		exitstring = ft_itoa(last_status);
-		envpc_add(envpc, "?", exitstring);
-		free(exitstring);
 	}
+	else
+	{
+		exitstring = ft_itoa(status);
+	}
+	envpc_add(envpc, "?", exitstring);
+	free(exitstring);	
 }
 
 void	execution(t_command_args ***command_args, char ***envpc)
@@ -335,7 +340,8 @@ void	execution(t_command_args ***command_args, char ***envpc)
 	i = 0;
 	while ((*command_args)[i])
 	{
-		status = -999;	
+		status = -999;
+		command_type=0;
 		if (count_commands_args((*command_args)[i]->tokenlist) == 0)
 			(*command_args)[i]->cancelexec = 1;
 		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
@@ -401,15 +407,22 @@ void	execution(t_command_args ***command_args, char ***envpc)
 			close((*command_args)[i]->readfd);
 			(*command_args)[i]->readfd = STDIN_FILENO;
 		}
-		if ((*command_args)[i+1] == NULL && command_type != EXECUTABLE && command_type != EXECUTABLE_PATH)	
+		if ((*command_args)[i+1] == NULL
+			&& command_type != EXECUTABLE
+			&& command_type != EXECUTABLE_PATH)	
 		{
 			last_status = status;
 		}
 		i++;
 	}
-	while (waitpid(-1, &status, 0) > 0)
-	;
+	// while (waitpid(-1, &status, 0) > 0)
+	// ;
 	i = 0;
+	while ((*command_args)[i])
+	{
+		waitpid((*command_args)[i]->pid, &status, 0);
+		i++;
+	}
 	if (WIFEXITED(status))
 		status = WEXITSTATUS(status);
 	else if (WIFSIGNALED(status))

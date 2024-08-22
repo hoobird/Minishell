@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 16:25:15 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/21 21:47:29 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/22 15:46:54 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ typedef struct s_token
 {
 	char 		*string; /* Zero terminated string. */
 	t_tokentype	type;	/* Flags associated with this word. */
-	int			postspace; /* 0 if no space after, 1 if got space after*/	
+	int			postspace; /* 0 if no space after, 1 if got space after*/
 	struct s_token		*next;
 }				t_token;
 
@@ -43,6 +43,7 @@ typedef struct	s_command_args
 	int		readfd;
 	int		writefd;
 	int		cancelexec;
+	pid_t	pid;
 }			t_command_args;
 
 typedef enum	e_command_type

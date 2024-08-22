@@ -187,7 +187,7 @@ int	check_if_key_legit(char *key)
 {
 	int	i;
 
-	if (key == NULL)
+	if (key == NULL || ft_strlen(key) == 0)
 		return (0);
 	if (key[0] && !(ft_isalpha(key[0]) || key[0] == '_'))
 		return (0);
@@ -210,32 +210,61 @@ void	freekeyvalue(char ***key_value)
 
 int	try_add_envvar(char *kvpair, char ***envpc)
 {
-	char	**key_value;
-	int		equalexist;
+	char	*equal;
+	char	*key;
+	char	*value;
 
-	equalexist = 0;
-	if (ft_strchr(kvpair, '=') != NULL)
-		equalexist = 1;
-	key_value = ft_split(kvpair, '=');
-	if (check_if_key_legit(key_value[0]) == 0)
+	equal = ft_strchr(kvpair, '=');
+	if (equal == NULL)
+	{	printerror("export: `");
+		ft_putstr_fd(kvpair, 2);
+		ft_putstr_fd("': assignment operator (=) expected\n",2);
+		return (0);
+	}
+	key = ft_substr(kvpair, 0, equal - kvpair);
+	if (check_if_key_legit(key) == 0)
 	{
 		printerror("export: `");
 		ft_putstr_fd(kvpair, 2);
 		ft_putstr_fd("': not a valid identifier\n",2);
-		freekeyvalue(&key_value);
+		free(key);
 		return (1);
 	}
-	if (equalexist == 0)
-	{	printerror("export: `");
-		ft_putstr_fd(kvpair, 2);
-		ft_putstr_fd("': assignment operator (=) expected\n",2);
-		freekeyvalue(&key_value);
-		return (0);
-	}
-	envpc_add(envpc, key_value[0], key_value[1]);
-	freekeyvalue(&key_value);
+	value = ft_strdup(equal + 1);
+	envpc_add(envpc, key, value);
+	free(key);
+	free(value);
 	return (0);
 }
+
+// int	try_add_envvar(char *kvpair, char ***envpc)
+// {
+// 	char	**key_value;
+// 	int		equalexist;
+
+// 	equalexist = 0;
+// 	if (ft_strchr(kvpair, '=') != NULL)
+// 		equalexist = 1;
+// 	key_value = ft_split(kvpair, '=');
+// 	if (check_if_key_legit(key_value[0]) == 0)
+// 	{
+// 		printerror("export: `");
+// 		ft_putstr_fd(kvpair, 2);
+// 		ft_putstr_fd("': not a valid identifier\n",2);
+// 		freekeyvalue(&key_value);
+// 		return (1);
+// 	}
+// 	if (equalexist == 0)
+// 	{	printerror("export: `");
+// 		ft_putstr_fd(kvpair, 2);
+// 		ft_putstr_fd("': assignment operator (=) expected\n",2);
+// 		freekeyvalue(&key_value);
+// 		return (0);
+// 	}
+// 	envpc_add(envpc, key_value[0], key_value[1]);
+// 	freekeyvalue(&key_value);
+// 	return (0);
+// }
 
 int	builtin_export(char **args, char ***envpc)
 {

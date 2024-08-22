@@ -43,6 +43,17 @@ int	is_not_empty_string(char *str)
 	return (0);
 }
 
+int	main_exit_free_envpc(char ***envpc)
+{
+	int i;
+
+	if (g_received_signal == SIGINT) // for ctrl + c 
+		envpc_add(envpc, "?", "130");
+	i = ft_atoi(envpc_get_value(*envpc, "?"));
+	envpc_free(envpc);
+	return (i);
+}
+
 // cc main.c builtin_cd_pwd.c  builtin_echo.c builtin_exit.c  execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var.c check_file_status.c -lreadline ../Libft/libft.a -g
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp ./a.out
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp --track-fds=yes --trace-children=yes ./a.out 
@@ -111,6 +122,5 @@ int main(int argc, char *argv[], char *envp[])
 		freecommandlist(&command_args_list);
 		free(buffer);
 	}
-	envpc_free(&envpc);
-	return (0);
+	return (main_exit_free_envpc(&envpc));
 }
