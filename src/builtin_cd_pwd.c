@@ -54,50 +54,55 @@ int	builtin_pwd(char **arg, char ***envpc)
 }
 
 /*
-refactor cd
-
-attempt to extract out: 
-chdir SUCCESS
-chdir FAILURE
-
+first, handle errors for chdir(dst_dir)
+	print suitable errmsg to stderr
+	return 1
+else assume chdir(dst_dir) success
+	update env vars
+	return 0
 */
+int	ft_chdir(char *dst_dir, char ***envpc)
+{
+	char	*tmp;
+
+	if (chdir(dst_dir) == -1)
+	{
+		ft_putstr_fd("minishell: cd: ", 2);
+		ft_putstr_fd(dst_dir, 2);
+		if (access(dst_dir, F_OK) == -1)
+			ft_putstr_fd(": No such file or directory\n", 2);
+		else if (access(dst_dir, R_OK) == -1)
+			ft_putstr_fd(": permission denied\n", 2);
+		else
+			ft_putstr_fd(": not a directory\n", 2);
+		return (1);
+	}
+	tmp = envpc_get_value(*envpc, "PWD");
+	envpc_add(envpc, "OLDPWD", tmp);
+	envpc_add(envpc, "PWD", dst_dir);
+	return (0);
+}
 
 /*
 function relies on chdir()
 
-chdir(), accepts one argument, a char *, the  the DST dir
+chdir(), accepts one argument, a (char *), the dst_dir
 On success, will change the current process's CWD to the DST dir, retVal 0
 On error, retVal -1, and errno is set
 
 NOTE
-chdir() will also accept as an arg, relative paths, eg.
-./learn	# change to "child" directory, 1 level down
-. 		# change to current directory
-../..	# change to "grandparent" directory, 2 levels up
-
-TO DO # 31 July 2024
-need to check for 2 conditions:
-
-if arg is directory # check_file_type(arg)
-AND 
-if arg can be read, permissions # check_file_permissions (arg, R_OK)
-
-# test cases
-cd ""		# does nothing, stay in the same/current directory
-cd			# no arg, change to HOME
-cd abc 123	# >1 arg, stay in the same/current directory, print err msg
+dst_dir can be BOTH absolute AND relative paths
 */
 int	builtin_cd(char **arg, char ***envpc)
 {
 	char	*dst_dir;
-	char	*tmp;
 
 	if (len_ch_star_star(arg) >= 2)
 	{
 		ft_putstr_fd("minishell: cd: too many arguments\n", 2);
 		return (1);
 	}
-	else if (len_ch_star_star(arg) == 0)
+	if (len_ch_star_star(arg) == 0)
 	{
 		dst_dir = envpc_get_value(*envpc, "HOME");
 		if (dst_dir == NULL)
@@ -106,70 +111,12 @@ int	builtin_cd(char **arg, char ***envpc)
 			return (1);
 		}
 		else
-		{
-			if (chdir(dst_dir) == 0)
-			{
-				tmp = envpc_get_value(*envpc, "PWD");
-				envpc_add(envpc, "OLDPWD", tmp);
-				envpc_add(envpc, "PWD", dst_dir);
-				return (0);
-			}
-			else if (chdir(dst_dir) == -1)
-			{
-				ft_putstr_fd("minishell: cd: ", 2);
-				ft_putstr_fd(dst_dir, 2);
-				if (access(dst_dir, F_OK) == -1)
-				{
-					ft_putstr_fd(": No such file or directory\n", 2);
-					return (1);
-				}
-				else if (access(dst_dir, R_OK) == -1)
-				{
-					ft_putstr_fd(": permission denied\n", 2);
-					return (1);
-				}
-				else
-				{
-					ft_putstr_fd(": not a directory\n", 2);
-					return (1);
-				}
-			}
-		}
+			return (ft_chdir(dst_dir, envpc));
 	}
-	else if (len_ch_star_star(arg) == 1)
-	{
-		dst_dir = arg[0];
-		if (ft_strncmp(dst_dir, "", 1) == 0)
-			return (0);
-		else if (chdir(dst_dir) == 0)
-		{
-			tmp = envpc_get_value(*envpc, "PWD");
-			envpc_add(envpc, "OLDPWD", tmp);
-			envpc_add(envpc, "PWD", dst_dir);
-			return (0);
-		}
-		else if (chdir(dst_dir) == -1)
-		{
-			ft_putstr_fd("minishell: cd: ", 2);
-			ft_putstr_fd(dst_dir, 2);
-			if (access(dst_dir, F_OK) == -1)
-			{
-				ft_putstr_fd(": No such file or directory\n", 2);
-				return (1);
-			}
-			else if (access(dst_dir, R_OK) == -1)
-			{
-				ft_putstr_fd(": permission denied\n", 2);
-				return (1);
-			}
-			else
-			{
-				ft_putstr_fd(": not a directory\n", 2);
-				return (1);
-			}
-		}
-	}
-	return (0);
+	dst_dir = arg[0];
+	if (ft_strncmp(dst_dir, "", 1) == 0)
+		return (0);
+	return (ft_chdir(dst_dir, envpc));
 }
 
 /*
