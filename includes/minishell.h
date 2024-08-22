@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/19 19:18:07 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/21 14:24:22 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,33 +52,10 @@ extern int g_received_signal;
 // for builtins like env echo cd pwd export unset exit
 #include "builtin.h"
 
+#include "typedefs.h"
 
 // printerror.c
 int	printerror(char	*errormsg);
-
-typedef struct	s_command_args
-{
-	t_token	*tokenlist;
-	int		readfd;
-	int		writefd;
-	int		cancelexec;
-}			t_command_args;
-
-typedef enum	e_command_type
-{
-	BUILTIN_ECHO =91,
-	BUILTIN_CD = 92,
-	BUILTIN_PWD = 93,
-	BUILTIN_EXPORT = 94,
-	BUILTIN_UNSET = 95,
-	BUILTIN_ENV = 96,
-	BUILTIN_EXIT = 97,
-	EXECUTABLE = 98,
-	DIRECTORY = 981,
-	PERMISSION_DENIED = 982,
-	NO_SUCH_FILE_OR_DIRECTORY = 983,
-	NOT_FOUND = 99,
-}				t_command_type;
 
 // piping.c
 void    		printpipelist(int **pipelist);
@@ -86,10 +63,10 @@ t_command_args	**upgrade_struct_generate_pipes(t_token **tokenlistlist);
 void    printcommandlist(t_command_args **command_arg_list);
 
 // redirection.c
-int	perform_redirection(t_command_args **command_args, char ***envpc);
+int	perform_redirection(t_command_args ***command_args, char ***envpc);
 
 // execute.c
-void	execution(t_command_args **command_args, char ***envpc);
+void	execution(t_command_args ***command_args, char ***envpc);
 void	free_command_args(t_command_args **command_args);
 int		command_args_len(t_command_args **command_args); // used in redirection also
 

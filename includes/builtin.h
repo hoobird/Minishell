@@ -29,6 +29,10 @@ int		builtin_echo(char **args);
 
 // builtin_exit.c
 void	builtin_exit(int status);
-void	builtin_exit_string(char **status, char ***envpc);
+void	builtin_exit_string(char ***status, char ***envpc, t_command_args ***command_args, int* fds);
+
+// defined in main but needed in execution also hence its in bultins.c
+void	freecommandlist(t_command_args ***command_args_list);
+
 
 # endif

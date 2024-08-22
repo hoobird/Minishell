@@ -1,29 +1,7 @@
 #ifndef PARSING_H
 #define PARSING_H
 
-typedef enum	e_tokentype
-{
-	WORD = 1,
-	SQUOTE = 2,
-	DQUOTE = 3,
-	RE_OUTPUT = 41,	// redirection >  be 41
-	RE_APPEND = 42,	// redirection >> be 42
-	RE_INPUT = 43,	// redirection <  be 43
-	RE_HEREDOC = 44,	// redirection << be 44
-	RE_HEREDOC_QUOTED = 45,	// redirection with quoted EOF << be 45
-	PIPE = 5,
-	COMMAND = 6,
-	ARGS = 7,
-	ERROR_UNCLOSED_QUOTES = 90,
-}				t_tokentype;
-
-typedef struct s_token
-{
-	char 		*string; /* Zero terminated string. */
-	t_tokentype	type;	/* Flags associated with this word. */
-	int			postspace; /* 0 if no space after, 1 if got space after*/	
-	struct s_token		*next;
-}				t_token;
+#include "typedefs.h"
 
 // parsing.c
 int 		ft_isbashdelimiter(char *pt);
@@ -62,6 +40,6 @@ void	free_tokenlistlist(t_token ***tokenlist);
 char	*tokenstostring(t_token *token);
 void	print_tokenlist(t_token *token);
 void	print_tokenlistlist(t_token **tokenlist);
-int		check_tokenlistlist_empty_and_free(t_token **tokenlist);
+int		check_tokenlistlist_empty_and_free(t_token ***tokenlist);
 
 #endif

@@ -29,7 +29,30 @@ void	handle_readline(int sig)
 	}
 }
 
-	
+int	is_not_empty_string(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] != ' ' && str[i] != '\t')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+int	main_exit_free_envpc(char ***envpc)
+{
+	int i;
+
+	if (g_received_signal == SIGINT) // for ctrl + c 
+		envpc_add(envpc, "?", "130");
+	i = ft_atoi(envpc_get_value(*envpc, "?"));
+	envpc_free(envpc);
+	return (i);
+}
 
 // cc main.c builtin_cd_pwd.c  builtin_echo.c builtin_exit.c  execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var.c check_file_status.c -lreadline ../Libft/libft.a -g
 // valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp ./a.out
@@ -52,13 +75,14 @@ int main(int argc, char *argv[], char *envp[])
 		buffer = NULL;
 		signal(SIGINT, handle_readline); // ctrl + c
 		signal(SIGQUIT, SIG_IGN); // ctrl + slash
+		signal(SIGPIPE, SIG_IGN); // pipe error
 		buffer = readline(PROMPT);
 		if (buffer == NULL)
 		{
 			ft_putstr_fd("exit\n", 1);
 			break ;
 		}
-		if (ft_strlen(buffer) > 0)
+		if (ft_strlen(buffer) > 0 && is_not_empty_string(buffer))
 			add_history(buffer);
 		else
 		{
@@ -73,9 +97,9 @@ int main(int argc, char *argv[], char *envp[])
 		// parse input
 		tokenlistlist = parse_input(buffer, &envpc);
 		// print_tokenlistlist(tokenlistlist);
-		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(tokenlistlist))
+		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(&tokenlistlist))
 		{
-			// printf("tokenlistlist is empty\n");
+			free(buffer);
 			envpc_add(&envpc, "?", "0");
 			continue ;
 		}
@@ -83,10 +107,10 @@ int main(int argc, char *argv[], char *envp[])
 		// printf("\n");
 		// next is to create pipes and upgrade t_token ** to t_command_args *
 		command_args_list = upgrade_struct_generate_pipes(tokenlistlist);
-		// free(tokenlistlist);
+		free(tokenlistlist);
 		// printcommandlist(command_args_list);
 		// then handle redirections
-		if (perform_redirection(command_args_list, &envpc) == 1)
+		if (perform_redirection(&command_args_list, &envpc) == 1)
 		{
 			freecommandlist(&command_args_list);
 			free(buffer);
@@ -94,11 +118,9 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		// printcommandlist(command_args_list);
 		// then execution
-		execution(command_args_list, &envpc);
-
+		execution(&command_args_list, &envpc);
 		freecommandlist(&command_args_list);
 		free(buffer);
 	}
-	envpc_free(&envpc);
-	return (0);
+	return (main_exit_free_envpc(&envpc));
 }

@@ -93,9 +93,10 @@ int	check_executable_in_path(char **envpc, char **command_args)
 			free(paths);
 			if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
 			{
+				// printf("binary_path = %s\n", binary_path);
 				path_list_free(path_list);
-				command_args[0] = binary_path;
-				return (EXECUTABLE);
+				free(binary_path);
+				return (EXECUTABLE_PATH);
 			}
 			free(binary_path);
 			i++;
@@ -105,12 +106,38 @@ int	check_executable_in_path(char **envpc, char **command_args)
 	return (NOT_FOUND);
 }
 
+char	*get_executable_in_path(char **envpc, char **command_args)
+{
+	char	*paths;
+	char	**path_list;
+	int		i;
+	char	*binary_path;
+
+	paths = envpc_get_value(envpc, "PATH");
+	path_list = ft_split(paths, ':');
+	i = 0;
+	while (path_list[i])
+	{
+		paths = ft_strjoin(path_list[i], "/");
+		binary_path = ft_strjoin(paths, command_args[0]);
+		free(paths);
+		if (check_file_type(binary_path) == 1 && check_file_permissions(binary_path, X_OK) == 1)
+		{
+			break;
+		}
+		free(binary_path);
+		i++;
+	}
+	path_list_free(path_list);
+	return (binary_path);
+}
+
 int	check_executable(char **envpc, char **command_args)
 {
 	if (ft_strchr(command_args[0], '/') == NULL) // if no path
 	{
-		if (check_executable_in_path(envpc, command_args) == EXECUTABLE) // check if in path
-			return (EXECUTABLE);
+		if (check_executable_in_path(envpc, command_args) == EXECUTABLE_PATH) // check if in path
+			return (EXECUTABLE_PATH);
 		else
 			return (NOT_FOUND);
 	}
@@ -160,75 +187,79 @@ int		command_args_len(t_command_args **command_args)
 	return (i);
 }
 
-int	run_builtin(char ***envpc, char **command_args_string)
+int	run_builtin(char ***envpc, char ***command_args_string, t_command_args ***command_args, int *fds)
 {
 	int	outcome;
 
 	outcome = 0;
-	if (check_command_type(*envpc, command_args_string) == BUILTIN_ECHO)
-		outcome = builtin_echo(command_args_string);
-	else if (check_command_type(*envpc, command_args_string) == BUILTIN_CD)
-		outcome = builtin_cd(&command_args_string[1], envpc);
-	else if (check_command_type(*envpc, command_args_string) == BUILTIN_PWD)
-		outcome = builtin_pwd(&command_args_string[1], envpc);
-	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXPORT)
-		outcome = builtin_export(&command_args_string[1], envpc);
-	else if (check_command_type(*envpc, command_args_string) == BUILTIN_UNSET)
-		outcome = builtin_unset(command_args_string, envpc);
-	else if (check_command_type(*envpc, command_args_string) == BUILTIN_ENV)
-		outcome = builtin_env(command_args_string, envpc);
-	else if (check_command_type(*envpc, command_args_string) == BUILTIN_EXIT)
-		builtin_exit_string(command_args_string, envpc);
+	if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_ECHO)
+		outcome = builtin_echo((*command_args_string));
+	else if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_CD)
+		outcome = builtin_cd(&(*command_args_string)[1], envpc);
+	else if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_PWD)
+		outcome = builtin_pwd(&(*command_args_string)[1], envpc);
+	else if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_EXPORT)
+		outcome = builtin_export(&(*command_args_string)[1], envpc);
+	else if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_UNSET)
+		outcome = builtin_unset((*command_args_string), envpc);
+	else if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_ENV)
+		outcome = builtin_env((*command_args_string), envpc);
+	else if (check_command_type(*envpc, (*command_args_string)) == BUILTIN_EXIT)
+		builtin_exit_string(command_args_string, envpc, command_args, fds);
 	return (outcome);
 }
 
-int		run_in_parent(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+int		run_in_parent(t_command_args ***command_args, int index, char ***envpc, char ***command_args_string)
 {
 	int		outcome;
-	int		actual_readfd;
-	int		actual_writefd;
+	int		fds[2];
+	// int		actual_readfd;
+	// int		actual_writefd;
 
-	actual_readfd = dup(STDIN_FILENO);
-	actual_writefd = dup(STDOUT_FILENO);
-	if (command_args[index]->writefd != STDOUT_FILENO)
-		dup2(command_args[index]->writefd, STDOUT_FILENO);
-	if (command_args[index]->readfd != STDIN_FILENO)
-		dup2(command_args[index]->readfd, STDIN_FILENO);
-	outcome = run_builtin(envpc, command_args_string);
+	fds[0] = dup(STDIN_FILENO); // actual_readfd
+	fds[1] = dup(STDOUT_FILENO); // actual_writefd
+	if ((*command_args)[index]->writefd != STDOUT_FILENO)
+		dup2((*command_args)[index]->writefd, STDOUT_FILENO);
+	if ((*command_args)[index]->readfd != STDIN_FILENO)
+		dup2((*command_args)[index]->readfd, STDIN_FILENO);
+	outcome = run_builtin(envpc, command_args_string, command_args, fds);
 	// close all pipes
-	if (command_args[index]->writefd != STDOUT_FILENO)
-		close(command_args[index]->writefd);
-	if (command_args[index]->readfd != STDIN_FILENO)
-		close(command_args[index]->readfd);
-	dup2(actual_readfd, STDIN_FILENO);
-	dup2(actual_writefd, STDOUT_FILENO);
-	close(actual_readfd);
-	close(actual_writefd);
+	if ((*command_args)[index]->writefd != STDOUT_FILENO)
+		close((*command_args)[index]->writefd);
+	if ((*command_args)[index]->readfd != STDIN_FILENO)
+		close((*command_args)[index]->readfd);
+	dup2(fds[0], STDIN_FILENO);
+	dup2(fds[1], STDOUT_FILENO);
+	close(fds[0]);
+	close(fds[1]);
 	return (outcome);
 }
 
-void	run_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+void	run_in_child(t_command_args ***command_args, int index, char ***envpc, char ***command_args_string)
 {
 	int	i;
+	pid_t	pid;
 
-	if (fork() == 0)
+	pid = fork();
+	(*command_args)[index]->pid = pid;
+	if (pid == 0)
 	{
-		if (command_args[index]->writefd != STDOUT_FILENO)
-			dup2(command_args[index]->writefd, STDOUT_FILENO);
-		if (command_args[index]->readfd != STDIN_FILENO)
-			dup2(command_args[index]->readfd, STDIN_FILENO);
+		if ((*command_args)[index]->writefd != STDOUT_FILENO)
+			dup2((*command_args)[index]->writefd, STDOUT_FILENO);
+		if ((*command_args)[index]->readfd != STDIN_FILENO)
+			dup2((*command_args)[index]->readfd, STDIN_FILENO);
 		// close all pipes
 		i = 0;
-		while (command_args[i])
+		while ((*command_args)[i])
 		{
-			if (command_args[i]->writefd != STDOUT_FILENO)
-				close(command_args[i]->writefd);
-			if (command_args[i]->readfd != STDIN_FILENO)
-				close(command_args[i]->readfd);
+			if ((*command_args)[i]->writefd != STDOUT_FILENO)
+				close((*command_args)[i]->writefd);
+			if ((*command_args)[i]->readfd != STDIN_FILENO)
+				close((*command_args)[i]->readfd);
 			i++;
 		}
 		// execute builtin
-		builtin_exit(run_builtin(envpc, command_args_string));
+		builtin_exit(run_builtin(envpc, command_args_string, command_args, NULL));
 		// run_builtin(envpc, command_args_string);
 	}
 }
@@ -241,6 +272,7 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	pid = fork();
+	command_args[index]->pid = pid;
 	if (pid == 0)
 	{
 		signal(SIGINT, SIG_DFL); // ctrl + c
@@ -260,10 +292,14 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 			i++;
 		}
 		// execute command
-		execve(command_args_string[0], command_args_string, *envpc);
+		if (check_command_type(*envpc, command_args_string) == EXECUTABLE_PATH)
+			execve(get_executable_in_path(*envpc, command_args_string), command_args_string, *envpc);
+		else
+			execve(command_args_string[0], command_args_string, *envpc);
 		printerror("execve failed\n");
 		builtin_exit(127);
 	}
+	// free(command_args_string[0]);
 }
 
 void	update_question_mark(char ***envpc, int status, int last_status)
@@ -280,18 +316,19 @@ void	update_question_mark(char ***envpc, int status, int last_status)
 		exitstring = ft_itoa(131);
 		ft_putstr_fd("Quit\n", 1);
 	}
-	exitstring = ft_itoa(status);
-	envpc_add(envpc, "?", exitstring);
-	free(exitstring);
-	if (last_status != -999)
+	else if (last_status != -999)
 	{
 		exitstring = ft_itoa(last_status);
-		envpc_add(envpc, "?", exitstring);
-		free(exitstring);
 	}
+	else
+	{
+		exitstring = ft_itoa(status);
+	}
+	envpc_add(envpc, "?", exitstring);
+	free(exitstring);	
 }
 
-void	execution(t_command_args **command_args, char ***envpc)
+void	execution(t_command_args ***command_args, char ***envpc)
 {
 	int i;
 	char	**command_args_string;
@@ -301,29 +338,30 @@ void	execution(t_command_args **command_args, char ***envpc)
 
 	last_status = -999;
 	i = 0;
-	while (command_args[i])
+	while ((*command_args)[i])
 	{
-		status = 0;	
-		if (count_commands_args(command_args[i]->tokenlist) == 0)
-			command_args[i]->cancelexec = 1;
+		status = -999;
+		command_type=0;
+		if (count_commands_args((*command_args)[i]->tokenlist) == 0)
+			(*command_args)[i]->cancelexec = 1;
 		// printf("command_args[%d]->cancelexec = %d\n", i, command_args[i]->cancelexec);
-		if (command_args[i]->cancelexec == 0)
+		if ((*command_args)[i]->cancelexec == 0)
 		{
-			command_args_string = command_args_extraction(command_args[i]->tokenlist);
+			command_args_string = command_args_extraction((*command_args)[i]->tokenlist);
 			command_type = check_command_type(*envpc, command_args_string);
 			if (command_type  < 98)// builtin
 			{
 				// execute builtin
-				if (command_args_len(command_args) == 1) // no pipes so run in parent
+				if (command_args_len((*command_args)) == 1) // no pipes so run in parent
 				{
-					status = run_in_parent(command_args, i, envpc, command_args_string);
+					status = run_in_parent(command_args, i, envpc, &command_args_string);
 				}
 				else // pipes avail then run in child
-					run_in_child(command_args, i, envpc, command_args_string);
+					run_in_child(command_args, i, envpc, &command_args_string);
 			}
-			else  if (command_type == EXECUTABLE)// executable
+			else  if (command_type == EXECUTABLE || command_type == EXECUTABLE_PATH)// executable
 			{
-				execute_in_child(command_args, i, envpc, command_args_string);
+				execute_in_child((*command_args), i, envpc, command_args_string);
 			}
 			else if (command_type == DIRECTORY)
 			{
@@ -355,28 +393,40 @@ void	execution(t_command_args **command_args, char ***envpc)
 			free(command_args_string);
 		}
 		else
-			status = command_args[i]->cancelexec % 2;
+		{
+			status = (*command_args)[i]->cancelexec % 2;
+		}
 		// close all the pipes used
-		if (command_args[i]->writefd != STDOUT_FILENO)
-			close(command_args[i]->writefd);
-		if (command_args[i]->readfd != STDIN_FILENO)
-			close(command_args[i]->readfd);
-		if (command_args[i+1] == NULL && command_type != EXECUTABLE)
+		if ((*command_args)[i]->writefd != STDOUT_FILENO)
+		{
+			close((*command_args)[i]->writefd);
+			(*command_args)[i]->writefd = STDOUT_FILENO;
+		}
+		if ((*command_args)[i]->readfd != STDIN_FILENO)
+		{
+			close((*command_args)[i]->readfd);
+			(*command_args)[i]->readfd = STDIN_FILENO;
+		}
+		if ((*command_args)[i+1] == NULL
+			&& command_type != EXECUTABLE
+			&& command_type != EXECUTABLE_PATH)	
 		{
 			last_status = status;
 		}
 		i++;
 	}
-	while (waitpid(-1, &status, 0) > 0)
+	// while (waitpid(-1, &status, 0) > 0)
+	// ;
+	i = 0;
+	while ((*command_args)[i])
 	{
-		if (WIFEXITED(status))
-		{
-			status = WEXITSTATUS(status);
-		}
-		else if (WIFSIGNALED(status))
-			status = WTERMSIG(status) + 128;
+		waitpid((*command_args)[i]->pid, &status, 0);
+		i++;
 	}
-	// printf("status = %d\n", status);
+	if (WIFEXITED(status))
+		status = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+		status = WTERMSIG(status) + 128;
 	update_question_mark(envpc, status, last_status);
 }
 
