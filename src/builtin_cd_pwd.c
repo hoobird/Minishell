@@ -1,4 +1,21 @@
-# include "minishell.h"
+#include "minishell.h"
+
+/*
+helper function
+to determine if char** is valid for builtin_cd
+
+Returns the number of elements in the char **
+NOTE. EXCLUDES the NULL pointer at the end of the char ** array
+*/
+static int	len_ch_star_star(char **css)
+{
+	int	index;
+
+	index = 0;
+	while (css && css[index])
+		index++;
+	return (index);
+}
 
 /* 
 function relies on getcwd()
@@ -22,18 +39,28 @@ NOTE. the calling function will handle any redirect from STDOUT to alternate FD?
 */
 int	builtin_pwd(char **arg, char ***envpc)
 {
+	char	buf[PATH_MAX];
+
 	(void)arg;
 	(void)envpc;
-	char	buf[PATH_MAX];
-	
 	if (getcwd(buf, PATH_MAX) == NULL)
 		return (1);
 	else
 	{
-		printf("%s\n", buf); // else if getcwd() success, print pathname to STDOUT
+		ft_putstr_fd(buf, 1);
+		ft_putstr_fd("\n", 1);
 		return (0);
 	}
 }
+
+/*
+refactor cd
+
+attempt to extract out: 
+chdir SUCCESS
+chdir FAILURE
+
+*/
 
 /*
 function relies on chdir()
@@ -43,7 +70,7 @@ On success, will change the current process's CWD to the DST dir, retVal 0
 On error, retVal -1, and errno is set
 
 NOTE
-chdir() seems to accept as an arg, relative paths, eg.
+chdir() will also accept as an arg, relative paths, eg.
 ./learn	# change to "child" directory, 1 level down
 . 		# change to current directory
 ../..	# change to "grandparent" directory, 2 levels up
@@ -55,47 +82,27 @@ if arg is directory # check_file_type(arg)
 AND 
 if arg can be read, permissions # check_file_permissions (arg, R_OK)
 
-
-cd "" # does nothing, stay in the same/current directory
-cd # no arg, change to HOME
-cd abc 123, # more than one arg, stay in the same/current directory, print err msg
-
+# test cases
+cd ""		# does nothing, stay in the same/current directory
+cd			# no arg, change to HOME
+cd abc 123	# >1 arg, stay in the same/current directory, print err msg
 */
-
-/*
-helper function
-to determine if char** is valid for builtin_cd
-
-Returns the number of elements in the char **
-NOTE. EXCLUDES the NULL pointer at the end of the char ** array
-*/
-static int len_ch_star_star(char **css)
-{
-	int index;
-
-	index = 0;
-	while (css && css[index])
-		index++;
-	return (index);
-}
-
 int	builtin_cd(char **arg, char ***envpc)
 {
 	char	*dst_dir;
 	char	*tmp;
-	
+
 	if (len_ch_star_star(arg) >= 2)
 	{
 		ft_putstr_fd("minishell: cd: too many arguments\n", 2);
 		return (1);
 	}
-
 	else if (len_ch_star_star(arg) == 0)
 	{
 		dst_dir = envpc_get_value(*envpc, "HOME");
 		if (dst_dir == NULL)
 		{
-			ft_putstr_fd("minishell: cd: HOME not set\n", 2);		
+			ft_putstr_fd("minishell: cd: HOME not set\n", 2);
 			return (1);
 		}
 		else
@@ -104,7 +111,7 @@ int	builtin_cd(char **arg, char ***envpc)
 			{
 				tmp = envpc_get_value(*envpc, "PWD");
 				envpc_add(envpc, "OLDPWD", tmp);
-				envpc_add(envpc, "PWD", dst_dir);		
+				envpc_add(envpc, "PWD", dst_dir);
 				return (0);
 			}
 			else if (chdir(dst_dir) == -1)
@@ -113,7 +120,7 @@ int	builtin_cd(char **arg, char ***envpc)
 				ft_putstr_fd(dst_dir, 2);
 				if (access(dst_dir, F_OK) == -1)
 				{
-					ft_putstr_fd(": No such file or directory\n", 2);			
+					ft_putstr_fd(": No such file or directory\n", 2);
 					return (1);
 				}
 				else if (access(dst_dir, R_OK) == -1)
@@ -129,7 +136,6 @@ int	builtin_cd(char **arg, char ***envpc)
 			}
 		}
 	}
-
 	else if (len_ch_star_star(arg) == 1)
 	{
 		dst_dir = arg[0];
@@ -148,19 +154,19 @@ int	builtin_cd(char **arg, char ***envpc)
 			ft_putstr_fd(dst_dir, 2);
 			if (access(dst_dir, F_OK) == -1)
 			{
-				ft_putstr_fd(": No such file or directory\n", 2);			
+				ft_putstr_fd(": No such file or directory\n", 2);
 				return (1);
 			}
-		    else if (access(dst_dir, R_OK) == -1)
-		    {
+			else if (access(dst_dir, R_OK) == -1)
+			{
 				ft_putstr_fd(": permission denied\n", 2);
-		    	return (1);
-		    }
-		    else
-		    {
+				return (1);
+			}
+			else
+			{
 				ft_putstr_fd(": not a directory\n", 2);
 				return (1);
-		    }
+			}
 		}
 	}
 	return (0);
