@@ -309,7 +309,6 @@ void	update_question_mark(char ***envpc, int status, int last_status)
 	if (status == 130)
 	{
 		exitstring = ft_itoa(130);
-		ft_putstr_fd("\n", 1);
 	}
 	else if (status == 131)
 	{
@@ -407,9 +406,7 @@ void	execution(t_command_args ***command_args, char ***envpc)
 			close((*command_args)[i]->readfd);
 			(*command_args)[i]->readfd = STDIN_FILENO;
 		}
-		if ((*command_args)[i+1] == NULL
-			&& command_type != EXECUTABLE
-			&& command_type != EXECUTABLE_PATH)	
+		if ((*command_args)[i+1] == NULL && command_type != EXECUTABLE && command_type != EXECUTABLE_PATH)	
 		{
 			last_status = status;
 		}
@@ -421,6 +418,11 @@ void	execution(t_command_args ***command_args, char ***envpc)
 	while ((*command_args)[i])
 	{
 		waitpid((*command_args)[i]->pid, &status, 0);
+		if (WIFSIGNALED(status))
+		{
+			if (WTERMSIG(status) == SIGINT)
+				ft_putstr_fd("\n", 1);
+		}
 		i++;
 	}
 	if (WIFEXITED(status))
