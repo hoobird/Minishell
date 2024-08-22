@@ -75,7 +75,6 @@ int main(int argc, char *argv[], char *envp[])
 		buffer = NULL;
 		signal(SIGINT, handle_readline); // ctrl + c
 		signal(SIGQUIT, SIG_IGN); // ctrl + slash
-		signal(SIGPIPE, SIG_IGN); // pipe error
 		buffer = readline(PROMPT);
 		if (buffer == NULL)
 		{
