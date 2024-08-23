@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 14:37:10 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 14:45:13 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/23 21:49:42 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,6 @@ void		free_tokenlistlist(t_token ***tokenlist);
 char		*tokenstostring(t_token *token);
 void		print_tokenlist(t_token *token);
 void		print_tokenlistlist(t_token **tokenlist);
-int			check_tokenlistlist_empty_and_free(t_token ***tokenlist);
+int			if_tokenlistlist_empty_free(t_token ***tokenlist);
 
 #endif

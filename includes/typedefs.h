@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 16:25:15 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 14:36:19 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/23 20:53:43 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ typedef struct s_command_args
 
 typedef enum e_command_type
 {
-	BUILTIN_ECHO =91,
+	BUILTIN_ECHO = 91,
 	BUILTIN_CD = 92,
 	BUILTIN_PWD = 93,
 	BUILTIN_EXPORT = 94,
@@ -62,5 +62,13 @@ typedef enum e_command_type
 	NO_SUCH_FILE_OR_DIRECTORY = 983,
 	NOT_FOUND = 99,
 }				t_command_type;
+
+typedef struct s_execution
+{
+	t_command_args	***cmd_args;
+	char			***envpc;
+	int				*status;
+	int				*command_type;
+}	t_execution;
 
 #endif

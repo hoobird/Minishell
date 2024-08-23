@@ -265,7 +265,7 @@ void	print_tokenlistlist(t_token **tokenlist)
 }
 
 // check if token list list is empty and frees it
-int	check_tokenlistlist_empty_and_free(t_token ***tokenlist)
+int	if_tokenlistlist_empty_free(t_token ***tokenlist)
 {
 	if ((*tokenlist)[0] == NULL)
 	{

@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 17:58:40 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/23 21:03:34 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@
 # include "builtin.h"
 // For parsing
 # include "parsing.h"
+# include "execution.h"
 
 extern int	g_received_signal;
 

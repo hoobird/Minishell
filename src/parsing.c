@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/23 22:28:48 by hulim             #+#    #+#             */
+/*   Updated: 2024/08/23 22:28:49 by hulim            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 #include "parsing.h"
 #include "builtin.h"
@@ -70,7 +82,6 @@ void check_then_add_token(t_token **token, char *word, t_tokentype type, int spa
 // split the string into tokens normal, single_quote, double_quote
 t_token	*process_quotes(char *str)
 {
-	// as we traverse the string, we will keep track of whether we are inside a quote or not
 	char		quoted;
 	int		i;
 	int 	start;
@@ -96,14 +107,14 @@ t_token	*process_quotes(char *str)
 // 		add the word before the quote and the quote to the token list
 void	process_quotes_handle_in_out_quote(t_token **token, char *str, char *quoted, int *start, int i)
 {
-	if (*quoted == 0) // if not in quote
+	if (*quoted == 0)
 	{
-		if (i - *start > 0) // if there is something before the quote
+		if (i - *start > 0)
 			check_then_add_token(token, ft_substr(str, *start, i - *start), WORD, check_if_space(&str[i - 1]));
 		*quoted = str[i];
 		*start = i;
 	}
-	else if (*quoted == str[i]) // if in quote
+	else if (*quoted == str[i])
 	{
 		if (*quoted == '\'') 
 			check_then_add_token(token, ft_substr(str, *start+1, i - *start-1), SQUOTE, check_if_space(&str[i+1]));
@@ -163,18 +174,16 @@ t_token	*handle_redirection_pipe(t_token *token)
 			{
 				if (check_redirection_pipe_type(&(token->string[i])))
 				{
-					if (i - start > 0) // if there is something before the redirection
+					if (i - start > 0)
 						check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, check_if_space(&token->string[i - 1]));
 					type = check_redirection_pipe_type(&(token->string[i]));
 					if (type == RE_APPEND || type == RE_HEREDOC)
 					{
-						// check_then_add_token(&revisedtoken, ft_substr(token->string, i, 2), type, 0); // not gonna add symbol to string
 						check_then_add_token(&revisedtoken, ft_strdup(""), type, 0);
 						i += 2;
 					}
 					else
 					{
-						// check_then_add_token(&revisedtoken, ft_substr(token->string, i, 1), type, 0); // not gonna add symbol to string
 						check_then_add_token(&revisedtoken, ft_strdup(""), type, 0);
 						i++;
 					}
@@ -184,7 +193,7 @@ t_token	*handle_redirection_pipe(t_token *token)
 					i++;
 			}
 			if (i - start > 0)
-				check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, token->postspace); // last token inherit the token's postspace
+				check_then_add_token(&revisedtoken, ft_substr(token->string, start, i - start), WORD, token->postspace);
 		}
 		else
 			check_then_add_token(&revisedtoken, ft_strdup(token->string), token->type, token->postspace);
@@ -316,38 +325,6 @@ t_token	*joinredirects_others(t_token *token)
 	}
 	return (newtoken);
 }
-
-// //join redirects with file to the right
-// t_token	*joinredirects(t_token *token)
-// {
-// 	t_token	*newtoken;
-// 	t_token	*nexttoken;
-// 	char	*combined;
-// 	char	*tmp;
-
-// 	newtoken = NULL;
-// 	while (token != NULL)
-// 	{
-// 		if (token->type == RE_OUTPUT || token->type == RE_APPEND || token->type == RE_INPUT || token->type == RE_HEREDOC)
-// 		{
-// 			nexttoken = token->next;
-// 			if (nexttoken->type == WORD)
-// 				tmp = ft_strtrim(nexttoken->string, " ");
-// 			else
-// 				tmp= ft_strdup(nexttoken->string);
-// 			combined = ft_strjoin(token->string, tmp);
-// 			free(tmp);
-// 			check_then_add_token(&newtoken, combined, token->type, nexttoken->postspace);
-// 			token = nexttoken;
-// 		}
-// 		else
-// 		{
-// 			check_then_add_token(&newtoken, ft_strdup(token->string), token->type, token->postspace);
-// 		}
-// 		token = token->next;
-// 	}
-// 	return (newtoken);
-// }
 
 // expand shell vars
 t_token	*handle_shellvars(char **envp, t_token *token)
@@ -519,32 +496,23 @@ t_token	**parse_input(char *str, char ***envp)
 	t_token	*revisedtokens;
 	t_token	**parse_output;
 
-	// STEP 1 - handle quotes
 	tokens = process_quotes(str);
-	// Step 1a - Error out when unclosed quotes
 	if (check_error_process_quotes(tokens))
 	{
 		free_tokenlist(&tokens);
 		return (NULL);
 	}
-	// STEP 2 - SPLIT WORD BY SPACES
 	revisedtokens = retoken_word_after_expansion(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// print_tokenlist(tokens);
-	// STEP 3  - handle special operators | > >> < <<
 	revisedtokens = handle_redirection_pipe(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// print_tokenlist(tokens);
-	// Step 3a - check if redirection not next to each other
-	// 			check if pipe is not next to pipe
 	if (check_error_redirection_pipe(tokens))
 	{
 		free_tokenlist(&tokens);
 		return (NULL);
 	}
-	// Step 4 - 9 
 	parse_output = parse_input_helper(tokens, envp);
 	return (parse_output);
 }
@@ -556,134 +524,20 @@ t_token	**parse_input_helper(t_token *tokens, char ***envp)
 	t_token	*revisedtokens;
 	t_token	**parse_output;
 
-	// STEP 4 - join redirects with file to the right
 	revisedtokens = joinredirects_heredoc(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 5 - handle shell vars
 	revisedtokens = handle_shellvars(*envp, tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
 	revisedtokens = joinredirects_others(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
 	revisedtokens = merge_stucktogether_words(tokens);
 	free_tokenlist(&tokens);
 	tokens = revisedtokens;
-	// STEP 8 - split command and args
 	parse_output = split_by_pipe(tokens);
 	free_tokenlist(&tokens);
-	// STEP 9 - label commands and args
 	label_commands_args(parse_output);
 	return (parse_output);
 }
-
-// // parse_input_helper 
-// // step 4 onwards
-// t_token	**parse_input_helper(t_token *tokens, char **envp)
-// {
-// 	t_token	*revisedtokens;
-// 	t_token	**parse_output;
-
-// 	// STEP 4 - join redirects with file to the right
-// 	revisedtokens = joinredirects(tokens);
-// 	free_tokenlist(&tokens);
-// 	tokens = revisedtokens;
-// 	// STEP 5 - handle shell vars
-// 	revisedtokens = handle_shellvars(envp, tokens);
-// 	free_tokenlist(&tokens);
-// 	tokens = revisedtokens;
-// 	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
-// 	revisedtokens = merge_stucktogether_words(tokens);
-// 	free_tokenlist(&tokens);
-// 	tokens = revisedtokens;
-// 	// STEP 8 - split command and args
-// 	parse_output = split_by_pipe(tokens);
-// 	free_tokenlist(&tokens);
-// 	// STEP 9 - label commands and args
-// 	label_commands_args(parse_output);
-// 	return (parse_output);
-// }
-
-/*
-// cc parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var2.c ../Libft/libft.a -g
-int main(int argc, char **argv, char **envp)
-{
-	t_token *tokens;
-	t_token *revisedtokens;
-	t_token **parse_output;
-	char	*str;
-	char	**envpc;
-
-	envpc = envp_copy(envp);
-	str = ft_calloc(100, sizeof(char));
-	// ft_strlcpy(str, "echo 'hello'  $USER   123\"asd\" | cat >file2 >> file3", 100);
-	// ft_strlcpy(str, "echo 'hello world'    file.txt | \"adsasd\"boss'a'", 100);
-	// ft_strlcpy(str, "cat file1.txt > hello.txt haha >>hi'muah' | echo \"$SHELL$USER\" '$LANGUAGE'>", 100);
-	// ft_strlcpy(str, "  echo $USER  number2  \"    $USER\"      '$SHELL'$USER \"$SHELL\" 'sd' $PWD", 100);
-	// ft_strlcpy(str, "cat file1> fil'2'.t\"x\"t", 100);
-	// ft_strlcpy(str, "echo 'file1'\"ads\"'asd'", 100);
-	// ft_strlcpy(str, "echo test \"$SHELL$USER\" $PWD \"$USER $SHLVL\" hello ", 100);
-	ft_strlcpy(str, "", 100);
-	printf("Command: ^%s\n", str);
-
-	// STEP 1 - handle quotes
-	tokens = process_quotes(str);
-	free(str);
-	// Step 1a - Error out when unclosed quotes
-	if (check_error_process_quotes(tokens))
-	{
-		envpc_free(&envpc);
-		free_tokenlist(&tokens);
-		return (1);
-	}
-	// STEP 2 - SPLIT WORD BY SPACES
-	revisedtokens = retoken_word_after_expansion(tokens);
-	free_tokenlist(&tokens);
-	tokens = revisedtokens;
-	// STEP 3  - handle special operators | > >> < <<
-	revisedtokens = handle_redirection_pipe(tokens);
-	free_tokenlist(&tokens);
-	tokens = revisedtokens;
-	// Step 3a - check if redirection not next to each other
-	// 			check if pipe is not next to pipe
-	if (check_error_redirection_pipe(tokens))
-	{	
-		envpc_free(&envpc);
-		free_tokenlist(&tokens);
-		return (1);
-	}
-	// STEP 4 - join redirects with file to the right
-	revisedtokens = joinredirects(tokens);
-	free_tokenlist(&tokens);
-	tokens = revisedtokens;
-	// STEP 5 - handle shell vars
-	revisedtokens = handle_shellvars(envpc, tokens);
-	free_tokenlist(&tokens);
-	tokens = revisedtokens;
-	print_tokenlist(tokens);
-	// STEP 6 - MERGE TOGETHER WORDS THAT ARE STUCK TOGETHER
-	revisedtokens = merge_stucktogether_words(tokens);
-	free_tokenlist(&tokens);
-	tokens = revisedtokens;
-	// STEP 8 - split command and args
-	parse_output = split_by_pipe(tokens);
-	free_tokenlist(&tokens);
-	// STEP 9 - label commands and args
-	label_commands_args(parse_output);
-	int i = 0;
-	while (parse_output[i] != NULL)
-	{
-		printf("Command: %d\n", i);
-		print_tokenlist(parse_output[i]);
-		i++;
-	}
-	free_tokenlistlist(&parse_output);
-	// print_tokenlist(revisedtokens);
-	// free_tokenlist(&revisedtokens);
-	envpc_free(&envpc);
-	return (0);
-}
-*/
-

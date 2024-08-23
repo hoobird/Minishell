@@ -1,19 +1,27 @@
-# include "minishell.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   expand_shell_var.c                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/23 21:21:41 by hulim             #+#    #+#             */
+/*   Updated: 2024/08/23 21:23:41 by hulim            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
 
 int	check_envvar_delimiter(char *start)
 {
 	int	i;
 
-	// check if the first character is a dollar sign
 	if (*start != '$')
 		return (0);
-	// check if its specificall $?
 	if (start[1] == '?')
 		return (2);
-	// check if the next character is a letter or an underscore
 	if (!ft_isalpha(start[1]) && start[1] != '_')
 		return (1);
-	// check if the following characters are a letter, an underscore, or a number
 	i = 1;
 	while (ft_isalnum(start[i]) || start[i] == '_')
 		i++;
@@ -23,7 +31,7 @@ int	check_envvar_delimiter(char *start)
 char	*shell_expand_append(char **envp, char **str, char *input, int len)
 {
 	char	*temp;
-	char 	*key;
+	char	*key;
 	char	*value;
 
 	if (*input == '$' && len > 1)
@@ -51,7 +59,7 @@ char	*expandshellvar(char *input, char **envp)
 	int		shellvar_len;
 	char	*output;
 
-	i=0;
+	i = 0;
 	output = ft_strdup("");
 	while (input[i])
 	{
@@ -61,8 +69,9 @@ char	*expandshellvar(char *input, char **envp)
 			if (shellvar_len == 1)
 				output = shell_expand_append(envp, &output, &input[i], 1);
 			else
-				output = shell_expand_append(envp, &output, &input[i], shellvar_len);
-			i+= shellvar_len;
+				output = shell_expand_append(envp, &output,
+						&input[i], shellvar_len);
+			i += shellvar_len;
 		}
 		else
 		{
@@ -72,20 +81,3 @@ char	*expandshellvar(char *input, char **envp)
 	}
 	return (output);
 }
-
-/*
-// cc expand_shell_var2.c builtin_env.c ../Libft/libft.a
-int	main(int argc, char **argv, char **env)
-{
-	char	*output;
-	char 	**envpc;
-	char	*input = "$HOME$HI $USER $HOME$USER$HOME";
-
-	envpc = envp_copy(env);
-	output = expandshellvar(input, envpc);
-	printf("%s\n", output);
-	free(output);
-	envpc_free(&envpc);
-	return (0);
-}
-*/

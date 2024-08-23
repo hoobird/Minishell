@@ -1,10 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/23 21:23:57 by hulim             #+#    #+#             */
+/*   Updated: 2024/08/23 21:49:47 by hulim            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-int g_received_signal = 0;
+int	g_received_signal = 0;
 
 void	freecommandlist(t_command_args ***command_args_list)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while ((*command_args_list)[i])
@@ -23,15 +35,15 @@ void	handle_readline(int sig)
 	if (sig == SIGINT)
 	{
 		ft_putstr_fd("\n", 1);
-		rl_on_new_line(); // move cursor to the beginning of the line
-		rl_replace_line("", 0); // clear the line
-		rl_redisplay(); // redisplay the line
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
 	}
 }
 
 int	is_not_empty_string(char *str)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (str[i])
@@ -45,9 +57,9 @@ int	is_not_empty_string(char *str)
 
 int	main_exit_free_envpc(char ***envpc)
 {
-	int i;
+	int	i;
 
-	if (g_received_signal == SIGINT) // for ctrl + c 
+	if (g_received_signal == SIGINT)
 		envpc_add(envpc, "?", "130");
 	i = ft_atoi(envpc_get_value(*envpc, "?"));
 	envpc_free(envpc);
@@ -75,26 +87,30 @@ void	startup(char **envp, char ***envpc)
 	}
 }
 
-// cc main.c builtin_cd_pwd.c  builtin_echo.c builtin_exit.c  execute.c redirection.c piping.c parsing.c token_linkedlist.c printerror.c builtin_env.c expand_shell_var.c check_file_status.c -lreadline ../Libft/libft.a -g
-// valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp ./a.out
-// valgrind --leak-check=full --show-leak-kinds=all --suppressions=../readline.supp --track-fds=yes --trace-children=yes ./a.out 
-int main(int argc, char *argv[], char *envp[])
+void	main_update_sigint_envpc(char ***envpc)
 {
-	(void)argc;
-	(void)argv;
-	
+	if (g_received_signal == SIGINT)
+	{
+		envpc_add(envpc, "?", "130");
+		g_received_signal = 0;
+	}
+}
+
+int	main(int argc, char *argv[], char *envp[])
+{
 	char					**envpc;
 	char					*buffer;
 	t_token					**tokenlistlist;
 	t_command_args			**command_args_list;
 
+	(void)argc;
+	(void)argv;
 	startup(envp, &envpc);
 	while (1)
 	{
-		// g_received_signal = 0;
 		buffer = NULL;
-		signal(SIGINT, handle_readline); // ctrl + c
-		signal(SIGQUIT, SIG_IGN); // ctrl + slash
+		signal(SIGINT, handle_readline);
+		signal(SIGQUIT, SIG_IGN);
 		buffer = readline(PROMPT);
 		if (buffer == NULL)
 		{
@@ -108,35 +124,22 @@ int main(int argc, char *argv[], char *envp[])
 			free(buffer);
 			continue ;
 		}
-		if (g_received_signal == SIGINT) // for ctrl + c 
-		{
-			envpc_add(&envpc, "?", "130");
-			g_received_signal = 0;	
-		}
-		// parse input
+		main_update_sigint_envpc(&envpc);
 		tokenlistlist = parse_input(buffer, &envpc);
-		// print_tokenlistlist(tokenlistlist);
-		if (tokenlistlist == NULL || check_tokenlistlist_empty_and_free(&tokenlistlist))
+		if (tokenlistlist == NULL || if_tokenlistlist_empty_free(&tokenlistlist))
 		{
 			free(buffer);
 			envpc_add(&envpc, "?", "0");
 			continue ;
 		}
-		// print_tokenlistlist(tokenlistlist);
-		// printf("\n");
-		// next is to create pipes and upgrade t_token ** to t_command_args *
 		command_args_list = upgrade_struct_generate_pipes(tokenlistlist);
 		free(tokenlistlist);
-		// printcommandlist(command_args_list);
-		// then handle redirections
 		if (perform_redirection(&command_args_list, &envpc) == 1)
 		{
 			freecommandlist(&command_args_list);
 			free(buffer);
 			continue ;
 		}
-		// printcommandlist(command_args_list);
-		// then execution
 		execution(&command_args_list, &envpc);
 		freecommandlist(&command_args_list);
 		free(buffer);
