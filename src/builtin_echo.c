@@ -1,4 +1,16 @@
-# include "minishell.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtin_echo.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/23 15:03:35 by hulim             #+#    #+#             */
+/*   Updated: 2024/08/23 15:04:47 by hulim            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
 
 int	is_valid_flag_n(char *flag)
 {
@@ -18,8 +30,8 @@ int	is_valid_flag_n(char *flag)
 
 int	builtin_echo(char **args)
 {
-	int i;
-	int newline;
+	int	i;
+	int	newline;
 
 	i = 1;
 	newline = 1;
@@ -42,47 +54,3 @@ int	builtin_echo(char **args)
 		ft_putstr_fd("\n", STDOUT_FILENO);
 	return (0);
 }
-
-// // check if flag only contains 'n'
-// int	check_only_n(char *flag)
-// {
-// 	int	i;
-
-// 	i = 1;
-// 	while (flag[i])
-// 	{
-// 		if (flag[i] != 'n')
-// 			return (0);
-// 		i++;
-// 	}
-// 	return (1);
-// }
-
-// // run as per echo command
-// void	builtin_echo(char *flag, char **arg)
-// {
-// 	int newline;
-// 	int i;
-
-// 	newline = 1;
-// 	if (flag && flag[0] == '-' && ft_strchr(flag, 'n') && check_only_n(flag))
-// 		newline = 0;
-// 	i = 0;
-// 	while (arg[i])
-// 	{
-// 		printf("%s", arg[i]);
-// 		if (arg[i + 1])
-// 			printf(" ");
-// 		i++;
-// 	}
-// 	if (newline)
-// 		printf("\n");
-// }
-
-// // test builtin_echo command
-// int	main(int argc, char **argv)
-// {
-// 	builtin_echo(argv[1], argv + 2);
-// 	return (0);
-// }
-

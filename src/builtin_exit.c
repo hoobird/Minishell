@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtin_exit.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/23 15:34:45 by hulim             #+#    #+#             */
+/*   Updated: 2024/08/23 18:03:54 by hulim            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static int	args_length(char **args)
@@ -8,11 +20,6 @@ static int	args_length(char **args)
 	while (args[i])
 		i++;
 	return (i);
-}
-
-void	builtin_exit(int status)
-{
-	exit(status);
 }
 
 void	close_all_fds(t_command_args **command_args)
@@ -30,7 +37,8 @@ void	close_all_fds(t_command_args **command_args)
 	}
 }
 
-void	free_everything_exe(char ***status, char ***envpc, t_command_args ***command_args, int* fds)
+void	free_everything_exe(char ***status, char ***envpc,
+			t_command_args ***command_args, int *fds)
 {
 	if (fds != NULL)
 	{
@@ -43,8 +51,8 @@ void	free_everything_exe(char ***status, char ***envpc, t_command_args ***comman
 	envpc_free(envpc);
 }
 
-
-void	builtin_exit_string(char ***status, char ***envpc, t_command_args ***command_args, int* fds)
+void	builtin_exit_string_size_not_2(char ***status, char ***envpc,
+			t_command_args ***command_args, int *fds)
 {
 	int	i;
 
@@ -53,14 +61,22 @@ void	builtin_exit_string(char ***status, char ***envpc, t_command_args ***comman
 		ft_putstr_fd("exit\n",1);
 		ft_putstr_fd("minishell: exit: too many arguments\n",2);
 		free_everything_exe(status, envpc, command_args, fds);
-		builtin_exit(1);
+		exit(1);
 	}
 	if (args_length((*status)) == 1)
 	{
 		i = ft_atoi(envpc_get_value(*envpc, "?"));
 		free_everything_exe(status, envpc, command_args, fds);
-		builtin_exit(i);
+		exit(i);
 	}
+}
+
+void	builtin_exit_string(char ***status, char ***envpc,
+			t_command_args ***command_args, int *fds)
+{
+	int	i;
+
+	builtin_exit_string_size_not_2(status, envpc, command_args, fds);
 	i = 0;
 	if ((*status)[1][0] == '-' || (*status)[1][0] == '+')
 		i++;
@@ -68,16 +84,15 @@ void	builtin_exit_string(char ***status, char ***envpc, t_command_args ***comman
 	{
 		if (!ft_isdigit((*status)[1][i]))
 		{
-			ft_putstr_fd("exit\n",1);
+			ft_putstr_fd("exit\n", 1);
 			ft_putstr_fd("minishell: exit: ", 2);
 			ft_putstr_fd((*status)[1], 2);
 			ft_putstr_fd(": numeric argument required\n", 2);
-			builtin_exit(2);
+			exit(2);
 		}
 		i++;
 	}
 	i = ft_atoi((*status)[1]);
-	// printf("i: %d\n", i);
 	free_everything_exe(status, envpc, command_args, fds);
-	builtin_exit(i);
+	exit(i);
 }

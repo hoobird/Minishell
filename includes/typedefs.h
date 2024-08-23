@@ -6,14 +6,14 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 16:25:15 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/22 15:46:54 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/23 14:36:19 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef TYPEDEFS_H
 # define TYPEDEFS_H
 
-typedef enum	e_tokentype
+typedef enum e_tokentype
 {
 	WORD = 1,
 	SQUOTE = 2,
@@ -31,13 +31,13 @@ typedef enum	e_tokentype
 
 typedef struct s_token
 {
-	char 		*string; /* Zero terminated string. */
-	t_tokentype	type;	/* Flags associated with this word. */
-	int			postspace; /* 0 if no space after, 1 if got space after*/
+	char				*string; /* Zero terminated string. */
+	t_tokentype			type;	/* Flags associated with this word. */
+	int					postspace; /*0 if no space after,1 if got space after*/
 	struct s_token		*next;
 }				t_token;
 
-typedef struct	s_command_args
+typedef struct s_command_args
 {
 	t_token	*tokenlist;
 	int		readfd;
@@ -46,7 +46,7 @@ typedef struct	s_command_args
 	pid_t	pid;
 }			t_command_args;
 
-typedef enum	e_command_type
+typedef enum e_command_type
 {
 	BUILTIN_ECHO =91,
 	BUILTIN_CD = 92,

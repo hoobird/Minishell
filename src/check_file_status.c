@@ -1,20 +1,33 @@
-# include "minishell.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   check_file_status.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/23 15:51:42 by hulim             #+#    #+#             */
+/*   Updated: 2024/08/23 15:51:50 by hulim            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
 
 // check file type directory or file
+// return 1 if regular file
+// return 2 if directory
+// return 0 if other type of file
 int	check_file_type(char *path)
 {
-	struct stat fileStat;
+	struct stat	filestat;
 
-	if (stat(path, &fileStat) == -1) {
-		// perror("stat failed");
+	if (stat(path, &filestat) == -1)
 		return (-1);
-	}
-	if ((fileStat.st_mode & S_IFMT) == S_IFREG)
-		return (1); // regular file
-	else if ((fileStat.st_mode & S_IFMT) == S_IFDIR)
-		return (2); // directory
+	if ((filestat.st_mode & S_IFMT) == S_IFREG)
+		return (1);
+	else if ((filestat.st_mode & S_IFMT) == S_IFDIR)
+		return (2);
 	else
-		return (0); // other type of file
+		return (0);
 }
 
 // check for read / write permissions
@@ -29,12 +42,6 @@ int	check_file_permissions(char *filename, int mode)
 {
 	if (access(filename, mode) == -1)
 	{
-		// if (mode == R_OK)
-		// 	printerror("No such file or directory\n");
-		// else if (mode == W_OK)
-		// 	printerror("Permission denied\n");
-		// else if (mode == F_OK)
-		// 	printerror("No such file or directory\n");
 		return (0);
 	}
 	return (1);

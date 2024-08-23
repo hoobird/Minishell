@@ -18,8 +18,9 @@ LIBFT_A = $(LIBFT_PATH)/libft.a
 ####################### SOURCE/OBJECT FILES #########################
 SRCFILES =	builtin_cd_pwd.c check_file_status.c parsing.c \
 		token_linkedlist.c builtin_echo.c execute.c piping.c \
-		builtin_env.c expand_shell_var.c printerror.c \
-		builtin_exit.c main.c redirection.c
+		builtin_env.c builtin_env_helper.c builtin_env_helper2.c \
+		builtin_env_helper3.c expand_shell_var.c \
+		printerror.c builtin_exit.c main.c redirection.c
 
 SRCS = $(addprefix $(SRCDIR), $(SRCFILES))
 OBJS = $(addprefix $(OBJDIR), $(SRCFILES:.c=.o))
