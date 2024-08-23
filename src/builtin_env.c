@@ -215,12 +215,6 @@ int	try_add_envvar(char *kvpair, char ***envpc)
 	char	*value;
 
 	equal = ft_strchr(kvpair, '=');
-	if (equal == NULL)
-	{	printerror("export: `");
-		ft_putstr_fd(kvpair, 2);
-		ft_putstr_fd("': assignment operator (=) expected\n",2);
-		return (0);
-	}
 	key = ft_substr(kvpair, 0, equal - kvpair);
 	if (check_if_key_legit(key) == 0)
 	{
@@ -229,6 +223,13 @@ int	try_add_envvar(char *kvpair, char ***envpc)
 		ft_putstr_fd("': not a valid identifier\n",2);
 		free(key);
 		return (1);
+	}
+	if (equal == NULL)
+	{	printerror("export: `");
+		ft_putstr_fd(kvpair, 2);
+		ft_putstr_fd("': assignment operator (=) expected\n",2);
+		free(key);
+		return (0);
 	}
 	value = ft_strdup(equal + 1);
 	envpc_add(envpc, key, value);
