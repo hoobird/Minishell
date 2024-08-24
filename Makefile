@@ -1,6 +1,6 @@
 ############################ Compilation ############################
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -Werror
 
 
 ############################ File Paths #############################
@@ -12,7 +12,7 @@ INCLUDES = includes/
 NAME = minishell
 
 ############################# Libraries #############################
-LIBFT_PATH = Libft
+LIBFT_PATH = libft
 LIBFT_A = $(LIBFT_PATH)/libft.a
 
 ####################### SOURCE/OBJECT FILES #########################
