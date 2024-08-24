@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:34:45 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 08:06:04 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 17:43:49 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ static int	args_length(char **args)
 	return (i);
 }
 
-void	close_all_fds(t_command_args **command_args)
+static void	close_all_fds(t_command_args **command_args)
 {
 	int	i;
 
@@ -37,7 +37,7 @@ void	close_all_fds(t_command_args **command_args)
 	}
 }
 
-void	free_everything_exe(char ***status, char ***envpc,
+static void	free_everything_exe(char ***status, char ***envpc,
 			t_command_args ***command_args, int *fds)
 {
 	if (fds != NULL)
@@ -51,7 +51,7 @@ void	free_everything_exe(char ***status, char ***envpc,
 	envpc_free(envpc);
 }
 
-void	builtin_exit_string_size_not_2(char ***status, char ***envpc,
+static void	builtin_exit_string_size_not_2(char ***status, char ***envpc,
 			t_command_args ***command_args, int *fds)
 {
 	int	i;

@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 22:29:08 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 08:17:26 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 17:46:16 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ void	printcommandlist(t_command_args **command_arg_list)
 	}
 }
 
-t_command_args	**upgrade_struct_to_list(t_token **tll)
+static t_command_args	**upgrade_struct_to_list(t_token **tll)
 {
 	t_command_args	**output;
 	int				i;
@@ -77,7 +77,7 @@ t_command_args	**upgrade_struct_to_list(t_token **tll)
 	return (output);
 }
 
-void	generate_pipes(t_command_args **command_args_list, int no_pipes)
+static void	generate_pipes(t_command_args **command_args_list, int no_pipes)
 {
 	int	i;
 	int	**pipefd;

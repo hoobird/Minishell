@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 14:31:25 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 16:56:36 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,9 @@ extern int		g_received_signal;
 // printerror.c
 int				printerror(char *errormsg);
 void			printerror_heredoc_eof(char *eof);
+int				printerror_unexpected_pipetoken();
+int				printerror_unexpected_token(t_token *nexttoken);
+
 
 // piping.c
 void			printpipelist(int **pipelist);

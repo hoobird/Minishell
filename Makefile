@@ -18,13 +18,15 @@ LIBFT_A = $(LIBFT_PATH)/libft.a
 ####################### SOURCE/OBJECT FILES #########################
 SRCFILES =	\
 		builtin_cd_pwd.c builtin_echo.c builtin_exit.c \
-		builtin_env.c builtin_env_helper.c builtin_env_helper2.c builtin_env_helper3.c \
+		builtin_env.c builtin_env_helper.c builtin_env_helper2.c \
+		builtin_env_helper3.c \
 		token_linkedlist.c token_linkedlist2.c token_linkedlist3.c \
 		token_linkedlist4.c \
 		check_file_status.c \
 		printerror.c \
 		expand_shell_var.c \
-		parsing.c \
+		parsing.c parsing2.c parsing3.c parsing4.c parsing5.c \
+		parsing6.c parsing7.c \
 		piping.c \
 		redirection.c redirection2.c redirection3.c redirection4.c \
 		execute.c execute2.c execute3.c execute4.c execute5.c execute6.c \
