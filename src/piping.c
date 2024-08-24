@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 22:29:08 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 22:35:17 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 08:17:26 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,19 +48,19 @@ void	printcommandlist(t_command_args **command_arg_list)
 	}
 }
 
-t_command_args	**upgrade_struct_to_list(t_token **tokenlistlist)
+t_command_args	**upgrade_struct_to_list(t_token **tll)
 {
 	t_command_args	**output;
 	int				i;
 
-	output = ft_calloc(sizeof(t_command_args *), tokenlistlist_len(tokenlistlist) + 1);
+	output = ft_calloc(sizeof(t_command_args *), tokenlistlist_len(tll) + 1);
 	if (!output)
 	{
 		printerror("Upgrade struct failed\n");
 		return (NULL);
 	}
-	i = 0;
-	while (i < tokenlistlist_len(tokenlistlist))
+	i = -1;
+	while (++i < tokenlistlist_len(tll))
 	{
 		output[i] = ft_calloc(sizeof(t_command_args), 1);
 		if (!output[i])
@@ -68,12 +68,11 @@ t_command_args	**upgrade_struct_to_list(t_token **tokenlistlist)
 			printerror("Upgrade struct failed\n");
 			return (NULL);
 		}
-		output[i]->tokenlist = tokenlistlist[i];
+		output[i]->tokenlist = tll[i];
 		output[i]->readfd = STDIN_FILENO;
 		output[i]->writefd = STDOUT_FILENO;
 		output[i]->cancelexec = 0;
 		output[i]->pid = 0;
-		i++;
 	}
 	return (output);
 }
@@ -86,20 +85,10 @@ void	generate_pipes(t_command_args **command_args_list, int no_pipes)
 	if (no_pipes <= 0)
 		return ;
 	pipefd = ft_calloc(sizeof(int *), no_pipes);
-	if (!pipefd)
-	{
-		printerror("Generate pipes failed\n");
-		return ;
-	}
 	i = 0;
 	while (i < no_pipes)
 	{
 		pipefd[i] = ft_calloc(sizeof(int), 2);
-		if (!pipefd[i])
-		{
-			printerror("Generate pipes (Calloc error) failed\n");
-			return ;
-		}
 		if (pipe(pipefd[i]) == -1)
 		{
 			printerror("Generate pipes failed\n");
@@ -110,10 +99,7 @@ void	generate_pipes(t_command_args **command_args_list, int no_pipes)
 		i++;
 	}
 	while (i > 0)
-	{
-		i--;
-		free(pipefd[i]);
-	}
+		free(pipefd[--i]);
 	free(pipefd);
 	return ;
 }

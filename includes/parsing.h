@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 14:37:10 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 21:49:42 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 16:11:19 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@ int			check_if_space(char *str);
 t_tokentype	check_redirection_pipe_type(char *s);
 void		check_then_add_token(t_token **token, char *word, t_tokentype type, int spaces);
 t_token		*process_quotes(char *str);
-void		process_quotes_handle_in_out_quote(t_token **token, char *str, char *quoted, int *start, int i);
-void		process_quotes_add_last_word(t_token **token, char *str, int start, int i, int quoted);
+void		process_quotes_handle_in_out_quote(t_pq_helper *helper, char *str);
+void		process_quotes_add_last_word(t_pq_helper *helper, char *str);
 int			check_error_process_quotes(t_token *token);
 t_token		*handle_redirection_pipe(t_token *token);
 int			check_error_redirection_pipe(t_token *token);
@@ -51,8 +51,9 @@ void		remove_token(t_token **token, int index);
 void		free_tokenlist(t_token **token);
 void		free_tokenlistlist(t_token ***tokenlist);
 char		*tokenstostring(t_token *token);
+char		*get_tokentype(t_tokentype type);
 void		print_tokenlist(t_token *token);
 void		print_tokenlistlist(t_token **tokenlist);
-int			if_tokenlistlist_empty_free(t_token ***tokenlist);
+int			check_tll_empty_free(t_token ***tokenlist);
 
 #endif

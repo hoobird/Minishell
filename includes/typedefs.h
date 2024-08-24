@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 16:25:15 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 20:53:43 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 16:10:07 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,5 +70,28 @@ typedef struct s_execution
 	int				*status;
 	int				*command_type;
 }	t_execution;
+
+typedef	struct	s_redirection
+{
+	t_tokentype		type;
+	char			*fileeof;
+	int				fd;
+}				t_redirection;
+
+typedef	struct	s_minishell
+{
+	char		**envpc;
+	char		*buffer;
+	t_token		**tokenlistlist;
+	t_command_args	**cmdargslist;
+}				t_minishell;
+ 
+typedef struct	s_pq_helper
+{
+	t_token	*token;
+	int		quoted;
+	int		start;
+	int		i;
+}			t_pq_helper;
 
 #endif

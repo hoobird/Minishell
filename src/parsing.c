@@ -6,26 +6,26 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 22:28:48 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 22:28:49 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 16:16:31 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include "parsing.h"
-#include "builtin.h"
 
 // checks if its bash delimiter (|, spaces, \0, <, <<, >, >>)
 // returns 0 if not delimiter, else number of spaces occpied by delimeter
-int ft_isbashdelimiter(char *pt)
+int	ft_isbashdelimiter(char *pt)
 {
 	if (ft_strncmp(pt, ">>", 2) == 0 || ft_strncmp(pt, "<<", 2) == 0)
 		return (2);
-	if (*pt == '|' || *pt == ' ' || *pt == '\t' || *pt == '<' || *pt == '>' || *pt == '$')
+	if (*pt == '|' || *pt == ' ' || *pt == '\t' || *pt == '<' || *pt == '>'
+		|| *pt == '$')
 		return (1);
 	return (0);
 }
 
-// return 1 if there ienvpc_add(envpc, "?", ft_itoa(outcome));s space, returns 0 if theres no space
+// return 1 if there ienvpc_add(envpc, "?", ft_itoa(outcome));s space, 
+// returns 0 if theres no space
 int	check_if_space(char *str)
 {
 	if (*str == ' ' || *str == '\t')
@@ -42,7 +42,7 @@ t_tokentype	check_redirection_pipe_type(char *s)
 		return (RE_HEREDOC);
 	if (ft_strncmp(s, ">", 1) == 0)
 		return (RE_OUTPUT);
-	if (ft_strncmp(s, "<",1)== 0)
+	if (ft_strncmp(s, "<", 1) == 0)
 		return (RE_INPUT);
 	if (ft_strncmp(s, "|", 1) == 0)
 		return (PIPE);
@@ -51,9 +51,10 @@ t_tokentype	check_redirection_pipe_type(char *s)
 
 // add token with check if its empty string or just made up of spaces
 // also check if token list is empty
-void check_then_add_token(t_token **token, char *word, t_tokentype type, int spaces)
+void	check_then_add_token(t_token **token, char *word,
+	t_tokentype type, int spaces)
 {
-	int 		i;
+	int	i;
 
 	if (type != WORD)
 	{
@@ -62,7 +63,7 @@ void check_then_add_token(t_token **token, char *word, t_tokentype type, int spa
 		else
 			add_token(*token, word, type, spaces);
 		return ;
-	} 
+	}
 	i = 0;
 	while (word[i])
 	{
@@ -76,72 +77,76 @@ void check_then_add_token(t_token **token, char *word, t_tokentype type, int spa
 		}
 		i++;
 	}
-	free(word); // free the word if its just made up of spaces
+	free(word);
 }
-	
+
 // split the string into tokens normal, single_quote, double_quote
 t_token	*process_quotes(char *str)
 {
-	char		quoted;
-	int		i;
-	int 	start;
-	t_token	*token;
+	t_pq_helper	helper;
 
-	quoted = 0;
-	i = 0;
-	start = 0;
-	token = NULL;
-	while (str[i])
+	helper.quoted = 0;
+	helper.i = 0;
+	helper.start = 0;
+	helper.token = NULL;
+	while (str[helper.i])
 	{
-		if (str[i] == '\'' || str[i] == '\"')
-		{
-			process_quotes_handle_in_out_quote(&token, str, &quoted, &start, i);
-		}
-		i++;
+		if (str[helper.i] == '\'' || str[helper.i] == '\"')
+			process_quotes_handle_in_out_quote(&helper, str);
+		helper.i++;
 	}
-	process_quotes_add_last_word(&token, str, start, i, quoted);
-	return (token);
+	process_quotes_add_last_word(&helper, str);
+	return (helper.token);
 }
 
-// helper function for process_quotes:
-// 		add the word before the quote and the quote to the token list
-void	process_quotes_handle_in_out_quote(t_token **token, char *str, char *quoted, int *start, int i)
+//	helper function for process_quotes:
+// 	add the word before the quote and the quote to the token list
+void	process_quotes_handle_in_out_quote(t_pq_helper *helper, char *str)
 {
-	if (*quoted == 0)
+	if (helper->quoted == 0)
 	{
-		if (i - *start > 0)
-			check_then_add_token(token, ft_substr(str, *start, i - *start), WORD, check_if_space(&str[i - 1]));
-		*quoted = str[i];
-		*start = i;
+		if (helper->i - helper->start > 0)
+			check_then_add_token(&(helper->token), ft_substr(str,
+					helper->start, helper->i - helper->start), WORD,
+				check_if_space(&str[helper->i - 1]));
+		helper->quoted = str[helper->i];
+		helper->start = helper->i;
 	}
-	else if (*quoted == str[i])
+	else if (helper->quoted == str[helper->i])
 	{
-		if (*quoted == '\'') 
-			check_then_add_token(token, ft_substr(str, *start+1, i - *start-1), SQUOTE, check_if_space(&str[i+1]));
+		if (helper->quoted == '\'')
+			check_then_add_token(&(helper->token), ft_substr(str,
+					helper->start + 1, helper->i - helper->start - 1), SQUOTE,
+				check_if_space(&str[helper->i + 1]));
 		else
-			check_then_add_token(token, ft_substr(str, *start+1, i - *start-1), DQUOTE, check_if_space(&str[i+1]));
-		*quoted = 0;
-		*start = i + 1;
+			check_then_add_token(&(helper->token), ft_substr(str, helper->start
+					+ 1, helper->i - helper->start - 1), DQUOTE,
+				check_if_space(&str[helper->i + 1]));
+		helper->quoted = 0;
+		helper->start = helper->i + 1;
 	}
 }
 
 // helper function for process_quotes:
 // 		add the last word to the token list
-void	process_quotes_add_last_word(t_token **token, char *str, int start, int i, int quoted)
+void	process_quotes_add_last_word(t_pq_helper *helper, char *str)
 {
-	if (quoted == 0)
+	if (helper->quoted == 0)
 	{
-		if (i - start > 0)
-			check_then_add_token(token, ft_substr(str, start, i - start), WORD, check_if_space(&str[i - 1]));
+		if (helper->i - helper->start > 0)
+			check_then_add_token(&(helper->token), ft_substr(str,
+					helper->start, helper->i - helper->start), WORD,
+				check_if_space(&str[helper->i - 1]));
 	}
 	else
 	{
-			check_then_add_token(token, ft_substr(str, start+1, i - start-1), ERROR_UNCLOSED_QUOTES, 0);
+		check_then_add_token(&(helper->token), ft_substr(str, helper->start
+				+ 1, helper->i - helper->start - 1), ERROR_UNCLOSED_QUOTES, 0);
 	}
 }
 
 // check if there is unclosed quotes
-int		check_error_process_quotes(t_token *token)
+int	check_error_process_quotes(t_token *token)
 {
 	while (token != NULL)
 	{
@@ -158,10 +163,10 @@ int		check_error_process_quotes(t_token *token)
 // handle redirections and pipe chracter
 t_token	*handle_redirection_pipe(t_token *token)
 {
-	int		i;
-	int		start;
-	t_token	*revisedtoken;
-	t_tokentype type;
+	int			i;
+	int			start;
+	t_token		*revisedtoken;
+	t_tokentype	type;
 
 	revisedtoken = NULL;
 	while (token != NULL)
@@ -212,7 +217,7 @@ int	check_error_redirection_pipe(t_token *token)
 	{
 		printerror("Syntax error near unexpected token `|'\n");
 		return (1);
-	} 
+	}
 	while (token != NULL)
 	{
 		if (token->type == PIPE)
@@ -244,7 +249,8 @@ int	check_error_redirection_pipe(t_token *token)
 }
 
 //join redirects with file to the right
-// heredoc... but must continually joins token with postspace = 0 until hits non-WORD, non-SQUOTE, non-DQUOTE, NULL
+// heredoc... but must continually joins token with postspace = 0
+// until hits non-WORD, non-SQUOTE, non-DQUOTE, NULL
 t_token	*joinredirects_heredoc(t_token *token)
 {
 	t_token	*newtoken;
@@ -264,7 +270,7 @@ t_token	*joinredirects_heredoc(t_token *token)
 			else
 			{
 				quoted = 1;
-				combined= ft_strdup(token->string);
+				combined = ft_strdup(token->string);
 			}
 			while (token->next != NULL && token->postspace == 0 && (token->next->type == WORD || token->next->type == SQUOTE || token->next->type == DQUOTE))
 			{
@@ -273,7 +279,7 @@ t_token	*joinredirects_heredoc(t_token *token)
 				else
 				{
 					quoted = 1;
-					tmp= ft_strdup(token->next->string);
+					tmp = ft_strdup(token->next->string);
 				}
 				combined = ft_strjoin(token->string, tmp);
 				free(tmp);
@@ -311,7 +317,7 @@ t_token	*joinredirects_others(t_token *token)
 			if (nexttoken->type == WORD)
 				tmp = ft_strtrim(nexttoken->string, " ");
 			else
-				tmp= ft_strdup(nexttoken->string);
+				tmp = ft_strdup(nexttoken->string);
 			combined = ft_strjoin(token->string, tmp);
 			free(tmp);
 			check_then_add_token(&newtoken, combined, token->type, nexttoken->postspace);
@@ -328,7 +334,7 @@ t_token	*joinredirects_others(t_token *token)
 
 // expand shell vars
 t_token	*handle_shellvars(char **envp, t_token *token)
-{
+{;
 	t_token	*newtoken;
 	char	*expanded;
 
@@ -338,10 +344,12 @@ t_token	*handle_shellvars(char **envp, t_token *token)
 		if (token->type == WORD || token->type == DQUOTE)
 		{
 			expanded = expandshellvar(token->string, envp);
-			check_then_add_token(&newtoken, expanded, token->type, token->postspace);
+			check_then_add_token(&newtoken, expanded, token->type,
+				token->postspace);
 		}
 		else
-			check_then_add_token(&newtoken, ft_strdup(token->string), token->type, token->postspace);
+			check_then_add_token(&newtoken, ft_strdup(token->string),
+				token->type, token->postspace);
 		token = token->next;
 	}
 	return (newtoken);
@@ -350,11 +358,11 @@ t_token	*handle_shellvars(char **envp, t_token *token)
 // retokenise the WORD token after expansion
 t_token	*retoken_word_after_expansion(t_token *etokens)
 {
-	t_token	*newtoken;
+	t_token	*ntoken;
 	char	**splitted;
 	int		i;
 
-	newtoken = NULL;
+	ntoken = NULL;
 	while (etokens != NULL)
 	{
 		if (etokens->type == WORD)
@@ -363,43 +371,45 @@ t_token	*retoken_word_after_expansion(t_token *etokens)
 			i = 0;
 			while (splitted[i])
 			{
-				check_then_add_token(&newtoken, ft_strdup(splitted[i]), WORD, 1);
-				free(splitted[i]);
-				i++;
+				check_then_add_token(&ntoken, ft_strdup(splitted[i]), WORD, 1);
+				free(splitted[i++]);
 			}
 			free(splitted);
-			get_lasttoken(newtoken)->postspace = etokens->postspace;
+			get_lasttoken(ntoken)->postspace = etokens->postspace;
 		}
 		else
-			check_then_add_token(&newtoken, ft_strdup(etokens->string), etokens->type, etokens->postspace);
+			check_then_add_token(&ntoken, ft_strdup(etokens->string),
+				etokens->type, etokens->postspace);
 		etokens = etokens->next;
 	}
-	return (newtoken);
+	return (ntoken);
 }
 
 // merge together words that are stuck together
 t_token	*merge_stucktogether_words(t_token *etokens)
 {
 	t_token	*newtoken;
-	t_token	*temp;
+	t_token	*tmp;
 	char	*combined;
-	char 	*tmpcombined;
+	char	*tmpstr;
 
 	newtoken = NULL;
 	while (etokens != NULL)
-	{	
-		temp = etokens;
+	{
+		tmp = etokens;
 		if (etokens->type != PIPE && etokens->postspace == 0)
 		{
 			combined = ft_strdup(etokens->string);
-			while (etokens->next != NULL && etokens->postspace == 0 && (etokens->next->type == WORD || etokens->next->type == SQUOTE || etokens->next->type == DQUOTE))
+			while (etokens->next != NULL && etokens->postspace == 0
+				&& (etokens->next->type == WORD || etokens->next->type == SQUOTE
+					|| etokens->next->type == DQUOTE))
 			{
-				tmpcombined = ft_strjoin(combined, etokens->next->string);
+				tmpstr = ft_strjoin(combined, etokens->next->string);
 				free(combined);
-				combined = tmpcombined;
+				combined = tmpstr;
 				etokens = etokens->next;
 			}
-			check_then_add_token(&newtoken, combined, temp->type, temp->postspace);
+			check_then_add_token(&newtoken, combined, tmp->type, tmp->postspace);
 		}
 		else
 		{
@@ -446,9 +456,11 @@ t_token	**split_by_pipe(t_token *token)
 		else
 		{
 			if (newtokens[i] == NULL)
-				newtokens[i] = init_tokenlist(ft_strdup(token->string), token->type, token->postspace);
+				newtokens[i] = init_tokenlist(ft_strdup(token->string),
+						token->type, token->postspace);
 			else
-				add_token(newtokens[i], ft_strdup(token->string), token->type, token->postspace);
+				add_token(newtokens[i], ft_strdup(token->string), token->type,
+					token->postspace);
 			token = token->next;
 		}
 	}
@@ -457,7 +469,9 @@ t_token	**split_by_pipe(t_token *token)
 
 // label commands and args now
 // 1. if first token is a WORD or SQUOTE or DQUOTE, then its a command
-// 2. if first token is a RE_OUTPUT, RE_APPEND, RE_INPUT, RE_HEREDOC, then move down the list until you find a WORD, SQUOTE, DQUOTE, then its a command
+// 2. if first token is a RE_OUTPUT, RE_APPEND, RE_INPUT, RE_HEREDOC, 
+// then move down the list until you find a WORD, SQUOTE, DQUOTE,
+// then its a command
 // FINALLY, AFTER COMMAND IS APPOINTED, FOLLOWING WORD SQUOTE DQUOTE ARE ARGS
 // DONT NEED TO LABEL REDIRECTIONS
 void	label_commands_args(t_token **tokenlistlist)
@@ -473,20 +487,21 @@ void	label_commands_args(t_token **tokenlistlist)
 		tokens = tokenlistlist[i];
 		while (tokens != NULL)
 		{
-			if (commandfound == 0 && (tokens->type == WORD || tokens->type == SQUOTE || tokens->type == DQUOTE))
+			if (commandfound == 0 && (tokens->type == WORD
+					|| tokens->type == SQUOTE || tokens->type == DQUOTE))
 			{
 				tokens->type = COMMAND;
 				commandfound = 1;
 			}
 			else
 			{
-				if (tokens->type == WORD || tokens->type == SQUOTE || tokens->type == DQUOTE)
+				if (tokens->type >= WORD && tokens->type <= DQUOTE)
 					tokens->type = ARGS;
 			}
 			tokens = tokens->next;
 		}
 		i++;
-	}	
+	}
 }
 
 // the main parsing function

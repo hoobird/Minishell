@@ -1,64 +1,59 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   token_linkedlist.c                                 :+:      :+:    :+:   */
+/*   token_linkedlist4.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/24 07:47:35 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 07:57:46 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 09:32:45 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-// initialise the token list (linked list) with first token
-t_token	*init_tokenlist(char *word, t_tokentype type, int spacesafter)
+// print token list
+void	print_tokenlist(t_token *token)
 {
-	t_token	*token;
+	int	i;
 
-	token = (t_token *)ft_calloc(1, sizeof(t_token));
 	if (token == NULL)
 	{
-		printerror("Error: failed to allocate memory for token\n");
-		return (NULL);
+		printf("Token list is empty\n");
+		return ;
 	}
-	token->string = word;
-	token->type = type;
-	token->next = NULL;
-	token->postspace = spacesafter;
-	return (token);
-}
-
-// get token list length
-int	tokenlist_len(t_token *token)
-{
-	int	len;
-
-	len = 0;
+	i = 0;
 	while (token != NULL)
 	{
-		len++;
+		printf("Token %d: ^%s^ [type: %s] [spacesafter: %d]\n", i,
+			token->string, get_tokentype(token->type), token->postspace);
 		token = token->next;
+		i++;
 	}
-	return (len);
 }
 
-// get token list list length
-int	tokenlistlist_len(t_token **tokenlist)
+void	print_tokenlistlist(t_token **tokenlist)
 {
 	int	i;
 
 	i = 0;
 	while (tokenlist[i] != NULL)
+	{
+		printf("Command: %d\n", i);
+		print_tokenlist(tokenlist[i]);
 		i++;
-	return (i);
+	}
+	if (i == 0)
+		printf("Token list list is empty\n");
 }
 
-// get last token
-t_token	*get_lasttoken(t_token *token)
+// check if token list list is empty and frees it
+int	check_tll_empty_free(t_token ***tokenlist)
 {
-	while (token->next != NULL)
-		token = token->next;
-	return (token);
+	if ((*tokenlist)[0] == NULL)
+	{
+		free_tokenlistlist(tokenlist);
+		return (1);
+	}
+	return (0);
 }

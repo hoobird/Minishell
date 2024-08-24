@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:34:45 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 18:03:54 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 08:06:04 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,8 @@ void	builtin_exit_string_size_not_2(char ***status, char ***envpc,
 
 	if (args_length((*status)) > 2)
 	{
-		ft_putstr_fd("exit\n",1);
-		ft_putstr_fd("minishell: exit: too many arguments\n",2);
+		ft_putstr_fd("exit\n", 1);
+		ft_putstr_fd("minishell: exit: too many arguments\n", 2);
 		free_everything_exe(status, envpc, command_args, fds);
 		exit(1);
 	}
