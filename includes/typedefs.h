@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 16:25:15 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 16:10:07 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 17:53:09 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,33 +18,33 @@ typedef enum e_tokentype
 	WORD = 1,
 	SQUOTE = 2,
 	DQUOTE = 3,
-	RE_OUTPUT = 41,	// redirection >  be 41
-	RE_APPEND = 42,	// redirection >> be 42
-	RE_INPUT = 43,	// redirection <  be 43
-	RE_HEREDOC = 44,	// redirection << be 44
-	RE_HEREDOC_QUOTED = 45,	// redirection with quoted EOF << be 45
+	RE_OUTPUT = 41,
+	RE_APPEND = 42,
+	RE_INPUT = 43,
+	RE_HEREDOC = 44,
+	RE_HEREDOC_QUOTED = 45,
 	PIPE = 5,
 	COMMAND = 6,
 	ARGS = 7,
 	ERROR_UNCLOSED_QUOTES = 90,
-}				t_tokentype;
+}					t_tokentype;
 
 typedef struct s_token
 {
-	char				*string; /* Zero terminated string. */
-	t_tokentype			type;	/* Flags associated with this word. */
-	int					postspace; /*0 if no space after,1 if got space after*/
-	struct s_token		*next;
-}				t_token;
+	char			*string;
+	t_tokentype		type;
+	int				postspace;
+	struct s_token	*next;
+}					t_token;
 
 typedef struct s_command_args
 {
-	t_token	*tokenlist;
-	int		readfd;
-	int		writefd;
-	int		cancelexec;
-	pid_t	pid;
-}			t_command_args;
+	t_token			*tokenlist;
+	int				readfd;
+	int				writefd;
+	int				cancelexec;
+	pid_t			pid;
+}					t_command_args;
 
 typedef enum e_command_type
 {
@@ -56,12 +56,12 @@ typedef enum e_command_type
 	BUILTIN_ENV = 96,
 	BUILTIN_EXIT = 97,
 	EXECUTABLE = 98,
-	EXECUTABLE_PATH = 980	,
+	EXECUTABLE_PATH = 980,
 	DIRECTORY = 981,
 	PERMISSION_DENIED = 982,
 	NO_SUCH_FILE_OR_DIRECTORY = 983,
 	NOT_FOUND = 99,
-}				t_command_type;
+}					t_command_type;
 
 typedef struct s_execution
 {
@@ -69,29 +69,29 @@ typedef struct s_execution
 	char			***envpc;
 	int				*status;
 	int				*command_type;
-}	t_execution;
+}					t_execution;
 
-typedef	struct	s_redirection
+typedef struct s_redirection
 {
 	t_tokentype		type;
 	char			*fileeof;
 	int				fd;
-}				t_redirection;
+}					t_redirection;
 
-typedef	struct	s_minishell
+typedef struct s_minishell
 {
-	char		**envpc;
-	char		*buffer;
-	t_token		**tokenlistlist;
+	char			**envpc;
+	char			*buffer;
+	t_token			**tokenlistlist;
 	t_command_args	**cmdargslist;
-}				t_minishell;
- 
-typedef struct	s_pq_helper
+}					t_minishell;
+
+typedef struct s_pq_helper
 {
-	t_token	*token;
-	int		quoted;
-	int		start;
-	int		i;
-}			t_pq_helper;
+	t_token			*token;
+	int				quoted;
+	int				start;
+	int				i;
+}					t_pq_helper;
 
 #endif

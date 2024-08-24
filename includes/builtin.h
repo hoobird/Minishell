@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 14:25:55 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 17:56:25 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 17:50:46 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 # define BUILTIN_H
 
 // builtin_env.c
-int	builtin_export(char **args, char ***envpc);
-int	builtin_unset(char **args, char ***envpc);
-int	builtin_env(char **args, char ***envpc);
+int		builtin_export(char **args, char ***envpc);
+int		builtin_unset(char **args, char ***envpc);
+int		builtin_env(char **args, char ***envpc);
 
 // builtin_env_helper.c
 char	**envp_copy(char **envp);

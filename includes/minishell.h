@@ -6,7 +6,7 @@
 /*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 20:21:39 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 16:56:36 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/24 17:51:42 by hulim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,8 @@ extern int		g_received_signal;
 // printerror.c
 int				printerror(char *errormsg);
 void			printerror_heredoc_eof(char *eof);
-int				printerror_unexpected_pipetoken();
+int				printerror_unexpected_pipetoken(void);
 int				printerror_unexpected_token(t_token *nexttoken);
-
 
 // piping.c
 void			printpipelist(int **pipelist);
@@ -82,8 +81,8 @@ int				redirect_heredoc(t_redirection **redlist, t_redirection red,
 int				handle_output_append(t_redirection *redir);
 int				handle_input(t_redirection *redir);
 void			redir_print_fail(int status, char *fileeof);
-void			redirect_heredoc_first(t_redirection **redirectionlist, char ***envpc,
-					t_command_args ***command_args);
+void			redirect_heredoc_first(t_redirection **redirectionlist,
+					char ***envpc, t_command_args ***command_args);
 void			redirect_rest_later(t_redirection **rl,
 					t_command_args **command_args);
 void			update_fds(t_redirection **rl, int i, int j,
