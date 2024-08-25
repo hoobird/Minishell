@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execute5.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*   By: hoobird <hoobird@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:52:18 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/23 21:16:01 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/25 14:24:50 by hoobird          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ void	execute_cmd(t_execution exe, int i)
 	}
 	else if (*exe.command_type == EXECUTABLE
 		|| *exe.command_type == EXECUTABLE_PATH)
-		execute_in_child((*exe.cmd_args), i, exe.envpc, cmd_args_str);
+		execute_in_child(exe.cmd_args, i, exe.envpc, &cmd_args_str);
 	else
 		handle_command_errors(exe.status, *exe.command_type, cmd_args_str);
 	free(cmd_args_str);

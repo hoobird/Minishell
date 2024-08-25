@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execution.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hulim <hulim@student.42singapore.sg>       +#+  +:+       +#+        */
+/*   By: hoobird <hoobird@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 21:03:54 by hulim             #+#    #+#             */
-/*   Updated: 2024/08/24 17:53:33 by hulim            ###   ########.fr       */
+/*   Updated: 2024/08/25 14:25:02 by hoobird          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,8 @@ void		run_in_child(t_command_args ***command_args, int index,
 				char ***envpc, char ***command_args_string);
 void		execute_in_child_signal(char p_or_c);
 void		close_writefd_readfd(t_command_args **command_args, int i);
-void		execute_in_child(t_command_args **command_args, int index,
-				char ***envpc, char **cmd_args_str);
+void		execute_in_child(t_command_args ***command_args, int index,
+				char ***envpc, char ***cmd_args_str);
 void		update_question_mark(char ***envpc, int status, int last_status);
 void		handle_command_errors(int *status, int command_type,
 				char **cmd_arg_str);
