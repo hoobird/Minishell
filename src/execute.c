@@ -264,7 +264,7 @@ void	run_in_child(t_command_args ***command_args, int index, char ***envpc, char
 	}
 }
 
-void	execute_in_child(t_command_args **command_args, int index, char ***envpc, char **command_args_string)
+void	execute_in_child(t_command_args ***command_args, int index, char ***envpc, char ***command_args_string)
 {
 	int	i;
 	pid_t	pid;
@@ -272,32 +272,34 @@ void	execute_in_child(t_command_args **command_args, int index, char ***envpc, c
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	pid = fork();
-	command_args[index]->pid = pid;
+	(*command_args)[index]->pid = pid;
 	if (pid == 0)
 	{
 		signal(SIGINT, SIG_DFL); // ctrl + c
 		signal(SIGQUIT, SIG_DFL); // ctrl + slash
-		if (command_args[index]->writefd != STDOUT_FILENO)
-			dup2(command_args[index]->writefd, STDOUT_FILENO);
-		if (command_args[index]->readfd != STDIN_FILENO)
-			dup2(command_args[index]->readfd, STDIN_FILENO);
+		if ((*command_args)[index]->writefd != STDOUT_FILENO)
+			dup2((*command_args)[index]->writefd, STDOUT_FILENO);
+		if ((*command_args)[index]->readfd != STDIN_FILENO)
+			dup2((*command_args)[index]->readfd, STDIN_FILENO);
 		// close all pipes
 		i = 0;
-		while (command_args[i])
+		while ((*command_args)[i])
 		{
-			if (command_args[i]->writefd != STDOUT_FILENO)
-				close(command_args[i]->writefd);
-			if (command_args[i]->readfd != STDIN_FILENO)
-				close(command_args[i]->readfd);
+			if ((*command_args)[i]->writefd != STDOUT_FILENO)
+				close((*command_args)[i]->writefd);
+			if ((*command_args)[i]->readfd != STDIN_FILENO)
+				close((*command_args)[i]->readfd);
 			i++;
 		}
 		// execute command
-		if (check_command_type(*envpc, command_args_string) == EXECUTABLE_PATH)
-			execve(get_executable_in_path(*envpc, command_args_string), command_args_string, *envpc);
+		if (check_command_type(*envpc, *command_args_string) == EXECUTABLE_PATH)
+			execve(get_executable_in_path(*envpc, *command_args_string), *command_args_string, *envpc);
 		else
-			execve(command_args_string[0], command_args_string, *envpc);
-		printerror("execve failed\n");
-		builtin_exit(127);
+			execve(*command_args_string[0], *command_args_string, *envpc);
+		free(*command_args_string);
+		freecommandlist(command_args);
+		envpc_free(envpc);
+		builtin_exit(0);
 	}
 	// free(command_args_string[0]);
 }
@@ -360,7 +362,7 @@ void	execution(t_command_args ***command_args, char ***envpc)
 			}
 			else  if (command_type == EXECUTABLE || command_type == EXECUTABLE_PATH)// executable
 			{
-				execute_in_child((*command_args), i, envpc, command_args_string);
+				execute_in_child(command_args, i, envpc, &command_args_string);
 			}
 			else if (command_type == DIRECTORY)
 			{
